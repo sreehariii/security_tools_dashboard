@@ -1,0 +1,356 @@
+<mvc:View
+    controllerName="sslchecker.controller.DNSLookup"
+    xmlns:mvc="sap.ui.core.mvc"
+    displayBlock="true"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    
+    <Page title="DNS Lookup" showNavButton="false">
+        <content>
+            <VBox class="sapUiMediumMargin">
+                
+                <!-- Input Form -->
+                <Panel headerText="Domain Information" class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiMediumMargin">
+                            <Label text="Domain Name:" />
+                            <Input 
+                                id="domainInput"
+                                value="{/dnsDomain}"
+                                placeholder="Enter domain name (e.g., google.com)"
+                                valueState="{/dnsValueState}"
+                                valueStateText="{/dnsValueStateText}"
+                                width="100%" />
+                                
+                            <!-- Action Buttons -->
+                            <HBox class="sapUiSmallMarginTop">
+                                <Button
+                                    text="DNS Lookup"
+                                    type="Emphasized"
+                                    icon="sap-icon://globe"
+                                    press="onLookupDNS"
+                                    enabled="{= !${/dnsBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearForm"
+                                    enabled="{= !${/dnsBusy}}" />
+                            </HBox>
+                            
+                            <HBox class="sapUiTinyMarginTop">
+                                <core:Icon 
+                                    src="sap-icon://hint" 
+                                    class="sapUiTinyMarginEnd" 
+                                    color="Neutral" />
+                                <Text text="Enter a domain name to lookup DNS records (A, AAAA, MX, TXT, CNAME, NS, SOA)" 
+                                      class="sapUiTinyText" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Loading Indicator -->
+                <Panel visible="{/dnsBusy}" class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox alignItems="Center" class="sapUiMediumMargin">
+                            <BusyIndicator size="2rem" />
+                            <Text text="Performing DNS lookup..." class="sapUiSmallMarginTop" />
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- DNS Results -->
+                <Panel 
+                    visible="{/hasDnsResults}"
+                    headerText="DNS Lookup Results"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiMediumMargin">
+                            
+                            <!-- Summary Panel -->
+                            <Panel headerText="Summary" class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox>
+                                            <Label text="Domain:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/dnsResults/domain}" class="sapUiTinyMarginEnd" />
+                                            <Button 
+                                                icon="sap-icon://copy"
+                                                type="Transparent"
+                                                press="onCopyDomain"
+                                                tooltip="Copy domain name" />
+                                        </HBox>
+                                        <HBox visible="{/dnsResults/ipAddress}">
+                                            <Label text="Primary IP:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/dnsResults/ipAddress}" class="sapUiTinyMarginEnd" />
+                                            <Button 
+                                                icon="sap-icon://copy"
+                                                type="Transparent"
+                                                press="onCopyIP"
+                                                tooltip="Copy IP address" />
+                                        </HBox>
+                                        <HBox>
+                                            <Label text="Total Records:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/dnsResults/summary/totalRecords}" />
+                                        </HBox>
+                                        <HBox>
+                                            <Label text="Record Types Found:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/dnsResults/summary/recordTypes}" />
+                                        </HBox>
+                                        <HBox>
+                                            <Label text="IPv4 Support:" />
+                                            <core:Icon 
+                                                src="{= ${/dnsResults/summary/hasIPv4} ? 'sap-icon://accept' : 'sap-icon://decline'}"
+                                                color="{= ${/dnsResults/summary/hasIPv4} ? 'Positive' : 'Critical'}"
+                                                class="sapUiTinyMarginBegin" />
+                                        </HBox>
+                                        <HBox>
+                                            <Label text="IPv6 Support:" />
+                                            <core:Icon 
+                                                src="{= ${/dnsResults/summary/hasIPv6} ? 'sap-icon://accept' : 'sap-icon://decline'}"
+                                                color="{= ${/dnsResults/summary/hasIPv6} ? 'Positive' : 'Critical'}"
+                                                class="sapUiTinyMarginBegin" />
+                                        </HBox>
+                                        <HBox>
+                                            <Label text="Mail Support:" />
+                                            <core:Icon 
+                                                src="{= ${/dnsResults/summary/hasMail} ? 'sap-icon://accept' : 'sap-icon://decline'}"
+                                                color="{= ${/dnsResults/summary/hasMail} ? 'Positive' : 'Critical'}"
+                                                class="sapUiTinyMarginBegin" />
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- A Records (IPv4) -->
+                            <Panel 
+                                visible="{/dnsResults/records/A/hasData}"
+                                headerText="A Records (IPv4 Addresses)"
+                                class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox
+                                            items="{/dnsResults/records/A/data}">
+                                            <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                                <HBox>
+                                                    <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
+                                                    <Button 
+                                                        icon="sap-icon://copy"
+                                                        type="Transparent"
+                                                        press="onCopyRecord"
+                                                        tooltip="Copy A record">
+                                                        <customData>
+                                                            <core:CustomData key="value" value="{value}" />
+                                                            <core:CustomData key="type" value="A" />
+                                                        </customData>
+                                                    </Button>
+                                                </HBox>
+                                            </VBox>
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- AAAA Records (IPv6) -->
+                            <Panel 
+                                visible="{/dnsResults/records/AAAA/hasData}"
+                                headerText="AAAA Records (IPv6 Addresses)"
+                                class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox
+                                            items="{/dnsResults/records/AAAA/data}">
+                                            <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                                <HBox>
+                                                    <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
+                                                    <Button 
+                                                        icon="sap-icon://copy"
+                                                        type="Transparent"
+                                                        press="onCopyRecord"
+                                                        tooltip="Copy AAAA record">
+                                                        <customData>
+                                                            <core:CustomData key="value" value="{value}" />
+                                                            <core:CustomData key="type" value="AAAA" />
+                                                        </customData>
+                                                    </Button>
+                                                </HBox>
+                                            </VBox>
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- MX Records -->
+                            <Panel 
+                                visible="{/dnsResults/records/MX/hasData}"
+                                headerText="MX Records (Mail Exchange)"
+                                class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox
+                                            items="{/dnsResults/records/MX/data}">
+                                            <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                                <HBox>
+                                                    <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
+                                                    <Button 
+                                                        icon="sap-icon://copy"
+                                                        type="Transparent"
+                                                        press="onCopyRecord"
+                                                        tooltip="Copy MX record">
+                                                        <customData>
+                                                            <core:CustomData key="value" value="{exchange}" />
+                                                            <core:CustomData key="type" value="MX" />
+                                                        </customData>
+                                                    </Button>
+                                                </HBox>
+                                            </VBox>
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- TXT Records -->
+                            <Panel 
+                                visible="{/dnsResults/records/TXT/hasData}"
+                                headerText="TXT Records"
+                                class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <VBox
+                                            items="{/dnsResults/records/TXT/data}">
+                                            <HBox class="sapUiTinyMarginBottom">
+                                                <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
+                                                <Button 
+                                                    icon="sap-icon://copy"
+                                                    type="Transparent"
+                                                    press="onCopyRecord"
+                                                    tooltip="Copy TXT record">
+                                                    <customData>
+                                                        <core:CustomData key="value" value="{value}" />
+                                                        <core:CustomData key="type" value="TXT" />
+                                                    </customData>
+                                                </Button>
+                                            </HBox>
+                                        </VBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- CNAME Records -->
+                            <Panel 
+                                visible="{/dnsResults/records/CNAME/hasData}"
+                                headerText="CNAME Records (Canonical Name)"
+                                class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox
+                                            items="{/dnsResults/records/CNAME/data}">
+                                            <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                                <HBox>
+                                                    <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
+                                                    <Button 
+                                                        icon="sap-icon://copy"
+                                                        type="Transparent"
+                                                        press="onCopyRecord"
+                                                        tooltip="Copy CNAME record">
+                                                        <customData>
+                                                            <core:CustomData key="value" value="{value}" />
+                                                            <core:CustomData key="type" value="CNAME" />
+                                                        </customData>
+                                                    </Button>
+                                                </HBox>
+                                            </VBox>
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- NS Records -->
+                            <Panel 
+                                visible="{/dnsResults/records/NS/hasData}"
+                                headerText="NS Records (Name Servers)"
+                                class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox
+                                            items="{/dnsResults/records/NS/data}">
+                                            <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                                <HBox>
+                                                    <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
+                                                    <Button 
+                                                        icon="sap-icon://copy"
+                                                        type="Transparent"
+                                                        press="onCopyRecord"
+                                                        tooltip="Copy NS record">
+                                                        <customData>
+                                                            <core:CustomData key="value" value="{value}" />
+                                                            <core:CustomData key="type" value="NS" />
+                                                        </customData>
+                                                    </Button>
+                                                </HBox>
+                                            </VBox>
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- SOA Record -->
+                            <Panel 
+                                visible="{/dnsResults/records/SOA/hasData}"
+                                headerText="SOA Record (Start of Authority)"
+                                class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <VBox
+                                            items="{/dnsResults/records/SOA/data}">
+                                            <VBox class="sapUiTinyMarginBottom">
+                                                <HBox>
+                                                    <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
+                                                    <Button 
+                                                        icon="sap-icon://copy"
+                                                        type="Transparent"
+                                                        press="onCopyRecord"
+                                                        tooltip="Copy SOA record">
+                                                        <customData>
+                                                            <core:CustomData key="value" value="{value}" />
+                                                            <core:CustomData key="type" value="SOA" />
+                                                        </customData>
+                                                    </Button>
+                                                </HBox>
+                                                <VBox class="sapUiTinyMarginTop"
+                                                    items="{details}">
+                                                    <Text 
+                                                        text="{}"
+                                                        class="sapUiTinyText sapUiTinyMarginTop" />
+                                                </VBox>
+                                            </VBox>
+                                        </VBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Error Panel -->
+                <Panel 
+                    visible="{/hasDnsError}"
+                    headerText="Error"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiMediumMargin">
+                            <MessageStrip
+                                text="{/dnsError/message}"
+                                type="Error"
+                                class="sapUiMediumMarginBottom" />
+                        </VBox>
+                    </content>
+                </Panel>
+
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

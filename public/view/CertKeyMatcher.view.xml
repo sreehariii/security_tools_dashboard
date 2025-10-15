@@ -1,0 +1,258 @@
+<mvc:View
+    controllerName="sslchecker.controller.CertKeyMatcher"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
+    
+    <Page 
+        title="Certificate Key Matcher"
+        showHeader="false"
+        enableScrolling="true"
+        backgroundDesign="Solid">
+        
+        <content>
+            <l:VerticalLayout 
+                width="100%" 
+                class="sapUiContentPadding">
+                
+                <!-- Input Form -->
+                <Panel 
+                    headerText="Certificate and Private Key Verification"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            
+                            <!-- Certificate Input -->
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="SSL Certificate (PEM Format)" required="true" labelFor="certInput" />
+                                <TextArea
+                                    id="certInput"
+                                    value="{/certificate}"
+                                    placeholder="-----BEGIN CERTIFICATE-----&#10;MIIDXTCCAkWgAwIBAgIJAKo...&#10;-----END CERTIFICATE-----"
+                                    required="true"
+                                    valueState="{/certValueState}"
+                                    valueStateText="{/certValueStateText}"
+                                    rows="8"
+                                    width="100%" />
+                                <HBox class="sapUiTinyMarginTop">
+                                    <core:Icon 
+                                        src="sap-icon://hint" 
+                                        color="#667eea"
+                                        size="1rem"
+                                        class="sapUiTinyMarginEnd" />
+                                    <Text text="Paste your SSL certificate in PEM format (including BEGIN/END lines)" class="sapUiSmallText" />
+                                </HBox>
+                            </VBox>
+                            
+                            <!-- Private Key Input -->
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Private Key (PEM Format)" required="true" labelFor="keyInput" />
+                                <TextArea
+                                    id="keyInput"
+                                    value="{/privateKey}"
+                                    placeholder="-----BEGIN PRIVATE KEY-----&#10;MIIEvQIBADANBgkqhkiG9w0BA...&#10;-----END PRIVATE KEY-----"
+                                    required="true"
+                                    valueState="{/keyValueState}"
+                                    valueStateText="{/keyValueStateText}"
+                                    rows="8"
+                                    width="100%" />
+                                <HBox class="sapUiTinyMarginTop">
+                                    <core:Icon 
+                                        src="sap-icon://hint" 
+                                        color="#667eea"
+                                        size="1rem"
+                                        class="sapUiTinyMarginEnd" />
+                                    <Text text="Paste your private key in PEM format (RSA, EC, or other formats supported)" class="sapUiSmallText" />
+                                </HBox>
+                            </VBox>
+                            
+                            <!-- Action Buttons -->
+                            <HBox class="sapUiSmallMarginTop">
+                                <Button
+                                    text="Match Certificate &amp; Key"
+                                    type="Emphasized"
+                                    icon="sap-icon://validate"
+                                    press="onMatchCertKey"
+                                    enabled="{= !${/matchBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearForm"
+                                    enabled="{= !${/matchBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                    
+                                <Button
+                                    text="Copy Certificate"
+                                    icon="sap-icon://copy"
+                                    press="onCopyCertificate"
+                                    enabled="{= ${/certificate}.length > 0 &amp;&amp; !${/matchBusy}}"
+                                    type="Transparent"
+                                    class="sapUiSmallMarginEnd" />
+                                    
+                                <Button
+                                    text="Copy Key"
+                                    icon="sap-icon://copy"
+                                    press="onCopyPrivateKey"
+                                    enabled="{= ${/privateKey}.length > 0 &amp;&amp; !${/matchBusy}}"
+                                    type="Transparent" />
+                            </HBox>
+                            
+                        </VBox>
+                    </content>
+                </Panel>
+                
+                <!-- Loading Indicator -->
+                <VBox 
+                    visible="{/matchBusy}"
+                    alignItems="Center"
+                    justifyContent="Center"
+                    class="sapUiMediumMarginTopBottom">
+                    <BusyIndicator size="3rem" />
+                    <Text 
+                        text="Verifying certificate and key match..."
+                        class="sapUiSmallMarginTop" />
+                </VBox>
+                
+                <!-- Error Message -->
+                <MessageStrip
+                    visible="{/hasMatchError}"
+                    text="{/matchErrorMessage}"
+                    type="Error"
+                    showIcon="true"
+                    showCloseButton="true"
+                    class="sapUiResponsiveMargin" />
+                
+                <!-- Results Section -->
+                <VBox visible="{/hasMatchResults}" class="sapUiResponsiveMargin">
+                    
+                    <!-- Match Status Panel -->
+                    <Panel headerText="Match Results" class="sapUiTinyMarginBottom">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <ObjectStatus
+                                        text="{/matchResults/statusText}"
+                                        state="{/matchResults/statusState}"
+                                        icon="{/matchResults/statusIcon}"
+                                        inverted="true"
+                                        class="sapUiSmallMarginEnd" />
+                                </HBox>
+                                
+                                <MessageStrip
+                                    text="{/matchResults/message}"
+                                    type="{/matchResults/messageType}"
+                                    showIcon="true" />
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Certificate Details -->
+                    <Panel headerText="Certificate Information" class="sapUiTinyMarginBottom">
+                        <content>
+                            <List>
+                                <StandardListItem
+                                    title="Subject"
+                                    description="{/matchResults/certificate/subject}"
+                                    wrapping="true" />
+                                <StandardListItem
+                                    title="Issuer"
+                                    description="{/matchResults/certificate/issuer}"
+                                    wrapping="true" />
+                                <StandardListItem
+                                    title="Valid From"
+                                    description="{/matchResults/certificate/validFrom}" />
+                                <StandardListItem
+                                    title="Valid To"
+                                    description="{/matchResults/certificate/validTo}" />
+                                <StandardListItem
+                                    visible="{/matchResults/showExpiryDays}"
+                                    title="Days Until Expiration"
+                                    info="{/matchResults/expiryDays}"
+                                    infoState="{/matchResults/expiryState}" />
+                                <StandardListItem
+                                    title="Serial Number"
+                                    description="{/matchResults/certificate/serialNumber}"
+                                    wrapping="true" />
+                                <StandardListItem
+                                    title="SHA1 Fingerprint"
+                                    description="{/matchResults/certificate/fingerprint}"
+                                    wrapping="true" />
+                                <StandardListItem
+                                    title="SHA256 Fingerprint"
+                                    description="{/matchResults/certificate/fingerprint256}"
+                                    wrapping="true" />
+                            </List>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Private Key Information -->
+                    <Panel headerText="Private Key Information" class="sapUiTinyMarginBottom">
+                        <content>
+                            <List>
+                                <StandardListItem
+                                    title="Key Type"
+                                    description="{/matchResults/privateKey/type}" />
+                                <StandardListItem
+                                    title="Key Size"
+                                    description="{/matchResults/privateKey/size}" />
+                                <StandardListItem
+                                    title="Format"
+                                    description="{/matchResults/privateKey/format}" />
+                            </List>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Compatibility Information -->
+                    <Panel headerText="Compatibility &amp; Technical Details" class="sapUiTinyMarginBottom">
+                        <content>
+                            <List>
+                                <StandardListItem
+                                    title="Algorithm Compatibility"
+                                    info="{/matchResults/compatibility/supportedText}"
+                                    infoState="{/matchResults/compatibility/supportedState}" />
+                                <StandardListItem
+                                    title="Signature Algorithm"
+                                    description="{/matchResults/compatibility/algorithm}" />
+                                <StandardListItem
+                                    title="Key Type"
+                                    description="{/matchResults/compatibility/keyType}" />
+                            </List>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Security Note -->
+                    <Panel headerText="Security Information" expandable="true" expanded="false" class="sapUiTinyMarginBottom">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <MessageStrip
+                                    text="🔒 Security Note: Your certificate and private key are processed locally on the server and are not stored or logged. The verification uses cryptographic signature testing to ensure the private key matches the certificate's public key."
+                                    type="Information"
+                                    showIcon="true" />
+                                
+                                <VBox class="sapUiSmallMarginTop">
+                                    <Text text="How the matching works:" class="sapUiSmallText" />
+                                    <Text text="1. Extract public key from certificate" class="sapUiSmallText" />
+                                    <Text text="2. Create test signature with private key" class="sapUiSmallText" />
+                                    <Text text="3. Verify signature using public key" class="sapUiSmallText" />
+                                    <Text text="4. Match confirmed if signature verification succeeds" class="sapUiSmallText" />
+                                </VBox>
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                </VBox>
+                
+            </l:VerticalLayout>
+        </content>
+        
+    </Page>
+    
+</mvc:View>

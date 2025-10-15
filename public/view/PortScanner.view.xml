@@ -1,0 +1,194 @@
+<mvc:View
+    controllerName="sslchecker.controller.PortScanner"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
+    
+    <Page 
+        title="Port Scanner"
+        showHeader="false"
+        enableScrolling="true"
+        backgroundDesign="Solid">
+        
+        <content>
+            <l:VerticalLayout 
+                width="100%" 
+                class="sapUiContentPadding">
+                
+                <!-- Input Form -->
+                <Panel 
+                    headerText="Port Scan Configuration"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <HBox alignItems="End">
+                                <VBox class="sapUiSmallMarginEnd" width="40%">
+                                    <Label text="Host (IP Address or Domain)" required="true" labelFor="hostInput" />
+                                    <Input
+                                        id="hostInput"
+                                        value="{/scanHost}"
+                                        placeholder="192.168.1.1 or example.com"
+                                        required="true"
+                                        submit="onScanPort"
+                                        valueState="{/hostValueState}"
+                                        valueStateText="{/hostValueStateText}"
+                                        width="100%" />
+                                </VBox>
+                                
+                                <VBox class="sapUiSmallMarginEnd" width="15%">
+                                    <Label text="Port" required="true" labelFor="portInput" />
+                                    <Input
+                                        id="portInput"
+                                        value="{/scanPort}"
+                                        placeholder="80"
+                                        type="Number"
+                                        required="true"
+                                        submit="onScanPort"
+                                        valueState="{/portValueState}"
+                                        valueStateText="{/portValueStateText}"
+                                        width="100%" />
+                                </VBox>
+                                
+                                <Button
+                                    text="Scan Port"
+                                    type="Emphasized"
+                                    icon="sap-icon://inspect"
+                                    press="onScanPort"
+                                    enabled="{= !${/scanBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearForm"
+                                    enabled="{= !${/scanBusy}}" />
+                            </HBox>
+                            
+                            <HBox class="sapUiTinyMarginTop">
+                                <core:Icon 
+                                    src="sap-icon://hint" 
+                                    color="#667eea"
+                                    size="1rem"
+                                    class="sapUiTinyMarginEnd" />
+                                <Text text="Enter an IP address or domain name and a port number to check if the port is open." class="sapUiSmallText" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </Panel>
+                
+                <!-- Loading Indicator -->
+                <VBox 
+                    visible="{/scanBusy}"
+                    alignItems="Center"
+                    justifyContent="Center"
+                    class="sapUiMediumMarginTopBottom">
+                    <BusyIndicator size="3rem" />
+                    <Text 
+                        text="Scanning port..."
+                        class="sapUiSmallMarginTop" />
+                </VBox>
+                
+                <!-- Error Message -->
+                <MessageStrip
+                    visible="{/hasScanError}"
+                    text="{/scanErrorMessage}"
+                    type="Error"
+                    showIcon="true"
+                    showCloseButton="true"
+                    class="sapUiResponsiveMargin" />
+                
+                <!-- Results Section -->
+                <VBox visible="{/hasScanResults}" class="sapUiResponsiveMargin">
+                    
+                    <!-- Status Panel -->
+                    <Panel headerText="Scan Results" class="sapUiTinyMarginBottom">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <ObjectStatus
+                                        text="{/scanResults/statusText}"
+                                        state="{/scanResults/statusState}"
+                                        icon="{/scanResults/statusIcon}"
+                                        inverted="true"
+                                        class="sapUiSmallMarginEnd" />
+                                    <Title 
+                                        text="{/scanResults/targetDisplay}"
+                                        level="H4" />
+                                </HBox>
+                                
+                                <MessageStrip
+                                    text="{/scanResults/message}"
+                                    type="{/scanResults/messageType}"
+                                    showIcon="true" />
+                                
+                                <!-- Port Information -->
+                                <VBox class="sapUiSmallMarginTop">
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Target Host:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/scanResults/host}" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="IP Address:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/scanResults/ipAddress}" class="monospace" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Port Number:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/scanResults/port}" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Port Status:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <ObjectStatus 
+                                            text="{/scanResults/portStatus}"
+                                            state="{/scanResults/portStatusState}" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom" visible="{/scanResults/showService}">
+                                        <Label text="Common Service:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/scanResults/serviceName}" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom" visible="{/scanResults/showResponseTime}">
+                                        <Label text="Response Time:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/scanResults/responseTime}" />
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Common Ports Reference -->
+                    <Panel headerText="Common Ports Reference" expandable="true" expanded="false" class="sapUiTinyMarginBottom">
+                        <content>
+                            <List>
+                                <StandardListItem title="Port 80" description="HTTP - Web Server" />
+                                <StandardListItem title="Port 443" description="HTTPS - Secure Web Server" />
+                                <StandardListItem title="Port 22" description="SSH - Secure Shell" />
+                                <StandardListItem title="Port 21" description="FTP - File Transfer Protocol" />
+                                <StandardListItem title="Port 25" description="SMTP - Mail Server" />
+                                <StandardListItem title="Port 3306" description="MySQL Database" />
+                                <StandardListItem title="Port 5432" description="PostgreSQL Database" />
+                                <StandardListItem title="Port 27017" description="MongoDB Database" />
+                                <StandardListItem title="Port 3389" description="RDP - Remote Desktop" />
+                                <StandardListItem title="Port 8080" description="HTTP Alternative / Proxy" />
+                            </List>
+                        </content>
+                    </Panel>
+                    
+                </VBox>
+                
+            </l:VerticalLayout>
+        </content>
+        
+    </Page>
+    
+</mvc:View>
+

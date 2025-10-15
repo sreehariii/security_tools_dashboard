@@ -1,0 +1,215 @@
+/* Custom CSS for SSL Tools - Performance Optimized */
+
+/* Critical CSS - Above the fold */
+html, body, #content {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    /* Performance optimizations */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeSpeed;
+}
+
+/* App ready state - prevents FOUC */
+body:not(.app-ready) #content > *:not(#loading-overlay) {
+    visibility: hidden;
+}
+
+body.app-ready #content > *:not(#loading-overlay) {
+    visibility: visible;
+}
+
+/* Full height for tool page */
+#appView, .sapTntToolPage {
+    height: 100%;
+    /* Hardware acceleration */
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Side navigation styling */
+.sapTntSideNavigation {
+    height: 100%;
+    /* Optimize repaints */
+    contain: layout;
+}
+
+/* Monospace font for fingerprints */
+.monospace {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.875rem;
+}
+
+/* SAN Badge styling */
+.sanBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(102, 126, 234, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+body.dark-theme .sanBadge {
+    background-color: rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.4);
+    color: #a3b3ff;
+}
+
+body:not(.dark-theme) .sanBadge {
+    background-color: rgba(102, 126, 234, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+    color: #5568d3;
+}
+
+.headerBlock {
+    text-align: center;
+}
+
+.infoBox {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid #667eea;
+}
+
+/* Dark theme adjustments */
+body .sapUiBody.sap_horizon_dark .infoBox {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body .sapUiBody.sap_horizon .infoBox {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.chainItem {
+    padding: 1rem;
+    border-left: 4px solid #667eea;
+    margin-bottom: 1rem;
+}
+
+body .sapUiBody.sap_horizon_dark .chainItem {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body .sapUiBody.sap_horizon .chainItem {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.errorText {
+    color: #dc3545;
+}
+
+/* Icon styling */
+.sapUiIcon[data-sap-ui-icon-content="\e248"] {
+    color: #667eea !important;
+}
+
+/* Make panels stand out */
+.sapMPanel {
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Status badges */
+.sapMObjStatus {
+    font-weight: 600 !important;
+}
+
+/* Tab bar */
+.sapMITH {
+    margin-bottom: 1rem;
+}
+
+/* Custom HTML header - complete control over spacing */
+.custom-header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: var(--sapFontFamily) !important;
+}
+
+.custom-hamburger {
+    background: transparent !important;
+    border: none !important;
+    font-size: 1.25rem !important;
+    cursor: pointer !important;
+    padding: 0.5rem !important;
+    margin: 0 !important;
+    color: var(--sapTextColor) !important;
+    border-radius: 0.25rem !important;
+    transition: background-color 0.2s !important;
+}
+
+.custom-hamburger:hover {
+    background-color: var(--sapButton_Hover_Background) !important;
+}
+
+.custom-hamburger:active {
+    background-color: var(--sapButton_Active_Background) !important;
+}
+
+.custom-shield {
+    font-size: 1.4rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+}
+
+.custom-title {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    color: var(--sapTextColor) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+}
+
+/* Dark theme adjustments */
+body.sap_horizon_dark .custom-hamburger {
+    color: var(--sapTextColor) !important;
+}
+
+body.sap_horizon_dark .custom-title {
+    color: var(--sapTextColor) !important;
+}
+
+
+/* Mobile navigation */
+@media (max-width: 768px) {
+    .sslMainTitle {
+        font-size: 1.2rem !important;
+    }
+    
+    .sapTntSideNavigation {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        height: 100vh !important;
+        z-index: 1000 !important;
+        background: var(--sapShell_Background) !important;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.15) !important;
+        transition: transform 0.3s ease-in-out !important;
+        transform: translateX(-100%) !important;
+    }
+    
+    .sapTntSideNavigation[aria-expanded="true"] {
+        transform: translateX(0) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .sapUiResponsiveMargin {
+        margin: 0.5rem !important;
+    }
+    
+    .sapMPanel .sapMPanelContent {
+        padding: 0.75rem !important;
+    }
+    
+    .sapMVBox > * {
+        margin-bottom: 0.5rem !important;
+    }
+}

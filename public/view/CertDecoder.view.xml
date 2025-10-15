@@ -1,0 +1,413 @@
+<mvc:View
+    controllerName="sslchecker.controller.CertDecoder"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
+    
+    <Page 
+        title="Certificate Decoder"
+        showHeader="false"
+        enableScrolling="true"
+        backgroundDesign="Solid">
+        
+        <content>
+            <l:VerticalLayout 
+                width="100%" 
+                class="sapUiContentPadding">
+                
+                <!-- Input Form -->
+                <Panel 
+                    headerText="Certificate Decoding"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            
+                            <!-- Certificate Input -->
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="SSL Certificate (PEM Format)" required="true" labelFor="certDecodeInput" />
+                                <TextArea
+                                    id="certDecodeInput"
+                                    value="{/certificateToDecode}"
+                                    placeholder="-----BEGIN CERTIFICATE-----&#10;MIIDXTCCAkWgAwIBAgIJAKo...&#10;-----END CERTIFICATE-----&#10;&#10;(Multiple certificates supported for chain decoding)"
+                                    required="true"
+                                    valueState="{/certDecodeValueState}"
+                                    valueStateText="{/certDecodeValueStateText}"
+                                    rows="10"
+                                    width="100%" />
+                                <HBox class="sapUiTinyMarginTop">
+                                    <core:Icon 
+                                        src="sap-icon://hint" 
+                                        color="#667eea"
+                                        size="1rem"
+                                        class="sapUiTinyMarginEnd" />
+                                    <Text text="Paste one or more SSL certificates in PEM format. Multiple certificates will be decoded as a chain." class="sapUiSmallText" />
+                                </HBox>
+                            </VBox>
+                            
+                            <!-- Action Buttons -->
+                            <HBox class="sapUiSmallMarginTop">
+                                <Button
+                                    text="Decode Certificate"
+                                    type="Emphasized"
+                                    icon="sap-icon://inspection"
+                                    press="onDecodeCertificate"
+                                    enabled="{= !${/decodeBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearForm"
+                                    enabled="{= !${/decodeBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                    
+                                <Button
+                                    text="Load Sample"
+                                    icon="sap-icon://add-document"
+                                    press="onLoadSample"
+                                    enabled="{= !${/decodeBusy}}"
+                                    type="Transparent"
+                                    class="sapUiSmallMarginEnd" />
+                                    
+                                <Button
+                                    text="Copy Certificate"
+                                    icon="sap-icon://copy"
+                                    press="onCopyCertificate"
+                                    enabled="{= ${/certificateToDecode}.length > 0 &amp;&amp; !${/decodeBusy}}"
+                                    type="Transparent" />
+                            </HBox>
+                            
+                        </VBox>
+                    </content>
+                </Panel>
+                
+                <!-- Loading Indicator -->
+                <VBox 
+                    visible="{/decodeBusy}"
+                    alignItems="Center"
+                    justifyContent="Center"
+                    class="sapUiMediumMarginTopBottom">
+                    <BusyIndicator size="3rem" />
+                    <Text 
+                        text="Decoding certificate..."
+                        class="sapUiSmallMarginTop" />
+                </VBox>
+                
+                <!-- Error Message -->
+                <MessageStrip
+                    visible="{/hasDecodeError}"
+                    text="{/decodeErrorMessage}"
+                    type="Error"
+                    showIcon="true"
+                    showCloseButton="true"
+                    class="sapUiResponsiveMargin" />
+                
+                <!-- Results Section -->
+                <VBox visible="{/hasDecodeResults}" class="sapUiResponsiveMargin">
+                    
+                    <!-- Summary Panel -->
+                    <Panel headerText="Certificate Summary" class="sapUiTinyMarginBottom">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <!-- Status Header -->
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <ObjectStatus
+                                        text="{/decodeResults/summary/validityStatus}"
+                                        state="{/decodeResults/summary/validityState}"
+                                        icon="{/decodeResults/summary/validityIcon}"
+                                        inverted="true"
+                                        class="sapUiSmallMarginEnd" />
+                                    <ObjectStatus
+                                        text="{/decodeResults/summaryText}"
+                                        state="{/decodeResults/summaryState}"
+                                        class="sapUiSmallMarginEnd" />
+                                </HBox>
+                                
+                                <!-- Key Certificate Information -->
+                                <VBox class="sapUiTinyMarginTop">
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Common Name (CN):" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/decodeResults/summary/commonName}" wrapping="true" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Subject Alt Names:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <VBox>
+                                            <Text text="{/decodeResults/summary/sanText}" wrapping="true" />
+                                            <Text 
+                                                visible="{/decodeResults/summary/hasSans}"
+                                                text="{= 'Total: ' + ${/decodeResults/summary/sanCount} + ' domain' + (${/decodeResults/summary/sanCount} > 1 ? 's' : '')}" 
+                                                class="sapUiSmallText" />
+                                        </VBox>
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Expiry Date:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <VBox>
+                                            <Text text="{/decodeResults/summary/expiryDate}" />
+                                            <ObjectStatus 
+                                                visible="{/decodeResults/summary/showDaysExpiry}"
+                                                text="{/decodeResults/summary/daysExpiryText}"
+                                                state="{/decodeResults/summary/validityState}"
+                                                class="sapUiTinyMarginTop" />
+                                        </VBox>
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Serial Number:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/decodeResults/summary/serialNumber}" class="monospace" wrapping="true" />
+                                    </HBox>
+                                </VBox>
+                                
+                                <!-- Additional Info -->
+                                <VBox class="sapUiSmallMarginTop">
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Certificates Found:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/decodeResults/certificatesFound}" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom" visible="{/decodeResults/isChain}">
+                                        <Label text="Certificate Chain:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <ObjectStatus 
+                                            text="{= ${/decodeResults/chainValid} ? 'Valid Chain' : 'Individual Certificates'}"
+                                            state="{= ${/decodeResults/chainValid} ? 'Success' : 'Information'}" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Decoded At:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/decodeResults/decodedAt}" class="sapUiSmallText" />
+                                    </HBox>
+                                </VBox>
+                                
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Certificates List -->
+                    <Panel 
+                        headerText="Certificate Details ({/decodeResults/certificatesFound} certificate{= ${/decodeResults/certificatesFound} > 1 ? 's' : ''})"
+                        class="sapUiTinyMarginBottom">
+                        <content>
+                            <List items="{/decodeResults/certificates}">
+                                <CustomListItem>
+                                    <VBox class="sapUiSmallMargin" visible="{= !${hasError}}">
+                                        <!-- Certificate Header -->
+                                        <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                            <ObjectStatus 
+                                                text="{certLevel}"
+                                                state="{levelState}"
+                                                inverted="true"
+                                                class="sapUiSmallMarginEnd" />
+                                            <ObjectStatus
+                                                text="{validityText}"
+                                                state="{validityState}"
+                                                icon="{validityIcon}"
+                                                class="sapUiSmallMarginEnd" />
+                                            <Text text="Certificate {position} of {/decodeResults/certificatesFound}" class="sapUiSmallText" />
+                                        </HBox>
+                                        
+                                        <!-- Basic Certificate Information -->
+                                        <Panel headerText="Basic Information" expandable="true" expanded="true" class="sapUiTinyMarginBottom">
+                                            <content>
+                                                <List>
+                                                    <CustomListItem>
+                                                        <HBox justifyContent="SpaceBetween" alignItems="Center" width="100%">
+                                                            <VBox width="90%">
+                                                                <Label text="Subject" design="Bold" />
+                                                                <Text text="{subject}" wrapping="true" class="monospace" />
+                                                            </VBox>
+                                                            <Button
+                                                                icon="sap-icon://copy"
+                                                                type="Transparent"
+                                                                tooltip="Copy subject to clipboard"
+                                                                press="onCopySubject"
+                                                                customData:subject="{subject}"
+                                                                xmlns:customData="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1" />
+                                                        </HBox>
+                                                    </CustomListItem>
+                                                    <CustomListItem>
+                                                        <HBox justifyContent="SpaceBetween" alignItems="Center" width="100%">
+                                                            <VBox width="90%">
+                                                                <Label text="Issuer" design="Bold" />
+                                                                <Text text="{issuer}" wrapping="true" class="monospace" />
+                                                            </VBox>
+                                                            <Button
+                                                                icon="sap-icon://copy"
+                                                                type="Transparent"
+                                                                tooltip="Copy issuer to clipboard"
+                                                                press="onCopyIssuer"
+                                                                customData:issuer="{issuer}"
+                                                                xmlns:customData="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1" />
+                                                        </HBox>
+                                                    </CustomListItem>
+                                                    <StandardListItem
+                                                        title="Version"
+                                                        description="{version}" />
+                                                    <StandardListItem
+                                                        title="Serial Number"
+                                                        description="{serialNumber}"
+                                                        wrapping="true" />
+                                                </List>
+                                            </content>
+                                        </Panel>
+                                        
+                                        <!-- Validity Information -->
+                                        <Panel headerText="Validity Period" expandable="true" expanded="true" class="sapUiTinyMarginBottom">
+                                            <content>
+                                                <List>
+                                                    <StandardListItem
+                                                        title="Valid From"
+                                                        description="{validFrom}" />
+                                                    <StandardListItem
+                                                        title="Valid To"
+                                                        description="{validTo}" />
+                                                    <StandardListItem
+                                                        visible="{showDaysExpiry}"
+                                                        title="Days Until Expiration"
+                                                        info="{daysExpiryText}"
+                                                        infoState="{validityState}" />
+                                                    <StandardListItem
+                                                        title="Certificate Status"
+                                                        info="{validityText}"
+                                                        infoState="{validityState}" />
+                                                </List>
+                                            </content>
+                                        </Panel>
+                                        
+                                        <!-- Public Key Information -->
+                                        <Panel headerText="Public Key &amp; Cryptographic Information" expandable="true" expanded="false" class="sapUiTinyMarginBottom">
+                                            <content>
+                                                <List>
+                                                    <StandardListItem
+                                                        title="Public Key Algorithm"
+                                                        description="{publicKeyAlgorithm}" />
+                                                    <StandardListItem
+                                                        title="Public Key Size"
+                                                        description="{publicKeySize}" />
+                                                    <StandardListItem
+                                                        title="Signature Algorithm"
+                                                        description="{signatureAlgorithm}" />
+                                                </List>
+                                            </content>
+                                        </Panel>
+                                        
+                                        <!-- Fingerprints -->
+                                        <Panel headerText="Certificate Fingerprints" expandable="true" expanded="false" class="sapUiTinyMarginBottom">
+                                            <content>
+                                                <List>
+                                                    <CustomListItem>
+                                                        <HBox justifyContent="SpaceBetween" alignItems="Center" width="100%">
+                                                            <VBox width="90%">
+                                                                <Label text="SHA1 Fingerprint" design="Bold" />
+                                                                <Text text="{fingerprint}" wrapping="true" class="monospace" />
+                                                            </VBox>
+                                                            <Button
+                                                                icon="sap-icon://copy"
+                                                                type="Transparent"
+                                                                tooltip="Copy SHA1 fingerprint to clipboard"
+                                                                press="onCopyFingerprint"
+                                                                customData:fingerprint="{fingerprint}"
+                                                                xmlns:customData="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1" />
+                                                        </HBox>
+                                                    </CustomListItem>
+                                                    <CustomListItem>
+                                                        <HBox justifyContent="SpaceBetween" alignItems="Center" width="100%">
+                                                            <VBox width="90%">
+                                                                <Label text="SHA256 Fingerprint" design="Bold" />
+                                                                <Text text="{fingerprint256}" wrapping="true" class="monospace" />
+                                                            </VBox>
+                                                            <Button
+                                                                icon="sap-icon://copy"
+                                                                type="Transparent"
+                                                                tooltip="Copy SHA256 fingerprint to clipboard"
+                                                                press="onCopyFingerprint256"
+                                                                customData:fingerprint="{fingerprint256}"
+                                                                xmlns:customData="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1" />
+                                                        </HBox>
+                                                    </CustomListItem>
+                                                </List>
+                                            </content>
+                                        </Panel>
+                                        
+                                        <!-- Extensions -->
+                                        <Panel 
+                                            visible="{hasExtensions}"
+                                            headerText="X.509 Extensions ({extensionCount} extension{= ${extensionCount} > 1 ? 's' : ''})" 
+                                            expandable="true" 
+                                            expanded="false" 
+                                            class="sapUiTinyMarginBottom">
+                                            <content>
+                                                <List items="{extensions}">
+                                                    <StandardListItem
+                                                        title="{name}"
+                                                        description="{value}"
+                                                        info="{= ${critical} ? 'Critical' : 'Non-Critical'}"
+                                                        infoState="{= ${critical} ? 'Warning' : 'Information'}"
+                                                        wrapping="true" />
+                                                </List>
+                                            </content>
+                                        </Panel>
+                                        
+                                    </VBox>
+                                    
+                                    <!-- Error Display for Invalid Certificates -->
+                                    <VBox class="sapUiSmallMargin" visible="{hasError}">
+                                        <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                            <ObjectStatus 
+                                                text="{certLevel}"
+                                                state="Error"
+                                                icon="sap-icon://error"
+                                                inverted="true"
+                                                class="sapUiSmallMarginEnd" />
+                                            <Text text="Certificate {position} of {/decodeResults/certificatesFound}" class="sapUiSmallText" />
+                                        </HBox>
+                                        
+                                        <MessageStrip
+                                            text="{error}"
+                                            type="Error"
+                                            showIcon="true" />
+                                    </VBox>
+                                    
+                                </CustomListItem>
+                            </List>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Usage Information -->
+                    <Panel headerText="Certificate Decoder Information" expandable="true" expanded="false" class="sapUiTinyMarginBottom">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <MessageStrip
+                                    text="🔍 Certificate Decoder: This tool parses and displays detailed information from SSL/TLS certificates in PEM format. It supports both single certificates and certificate chains."
+                                    type="Information"
+                                    showIcon="true" />
+                                
+                                <VBox class="sapUiSmallMarginTop">
+                                    <Text text="Supported Features:" class="sapUiSmallText" />
+                                    <Text text="• Single certificate decoding" class="sapUiSmallText" />
+                                    <Text text="• Certificate chain analysis" class="sapUiSmallText" />
+                                    <Text text="• Subject and Issuer information extraction" class="sapUiSmallText" />
+                                    <Text text="• Validity period analysis" class="sapUiSmallText" />
+                                    <Text text="• Public key information" class="sapUiSmallText" />
+                                    <Text text="• Certificate fingerprints (SHA1 &amp; SHA256)" class="sapUiSmallText" />
+                                    <Text text="• X.509 extensions parsing" class="sapUiSmallText" />
+                                    <Text text="• Copy functionality for easy sharing" class="sapUiSmallText" />
+                                </VBox>
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                </VBox>
+                
+            </l:VerticalLayout>
+        </content>
+        
+    </Page>
+    
+</mvc:View>

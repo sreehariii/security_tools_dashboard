@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Quick Test</title>
+    <script
+        src="https://sdk.openui5.org/resources/sap-ui-core.js"
+        data-sap-ui-theme="sap_horizon_dark"
+        data-sap-ui-libs="sap.m, sap.tnt"
+        data-sap-ui-async="true">
+    </script>
+    <script>
+        sap.ui.getCore().attachInit(function() {
+            new sap.m.App({
+                pages: [
+                    new sap.m.Page({
+                        title: "Test",
+                        content: [
+                            new sap.m.Text({ text: "If you see this, UI5 is working!" })
+                        ]
+                    })
+                ]
+            }).placeAt("content");
+        });
+    </script>
+</head>
+<body class="sapUiBody" id="content"></body>
+</html>
+

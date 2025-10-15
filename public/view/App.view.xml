@@ -1,0 +1,81 @@
+<mvc:View
+    controllerName="sslchecker.controller.App"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:tnt="sap.tnt"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
+    
+    <tnt:ToolPage id="toolPage">
+        
+        <!-- Header -->
+        <tnt:header>
+            <tnt:ToolHeader>
+                <core:HTML content="&lt;div class='custom-header-left'&gt;
+                    &lt;button id='sideNavToggleHTML' class='custom-hamburger' title='Toggle Navigation'&gt;☰&lt;/button&gt;
+                    &lt;span class='custom-shield'&gt;🛡️&lt;/span&gt;
+                    &lt;span class='custom-title'&gt;Security Tools&lt;/span&gt;
+                &lt;/div&gt;" />
+                <ToolbarSpacer />
+                <Button
+                    icon="{= ${/darkMode} ? 'sap-icon://light-mode' : 'sap-icon://dark-mode'}"
+                    tooltip="{= ${/darkMode} ? 'Switch to Light Mode' : 'Switch to Dark Mode'}"
+                    type="Transparent"
+                    press="onToggleTheme" />
+            </tnt:ToolHeader>
+        </tnt:header>
+        
+        <!-- Side Navigation -->
+        <tnt:sideContent>
+            <tnt:SideNavigation
+                id="sideNavigation"
+                expanded="true"
+                itemSelect="onItemSelect"
+                class="appSideNavigation">
+                <tnt:NavigationList id="navigationList" selectedKey="sslChecker">
+                    <tnt:NavigationListItem
+                        text="SSL Certificate Checker"
+                        icon="sap-icon://shield"
+                        key="sslChecker" />
+                    <tnt:NavigationListItem
+                        text="Port Scanner"
+                        icon="sap-icon://radar-chart"
+                        key="portScanner" />
+                    <tnt:NavigationListItem
+                        text="Certificate Key Matcher"
+                        icon="sap-icon://key"
+                        key="certKeyMatcher" />
+                    <tnt:NavigationListItem
+                        text="Certificate Decoder"
+                        icon="sap-icon://inspection"
+                        key="certDecoder" />
+                    <tnt:NavigationListItem
+                        text="CSR Decoder"
+                        icon="sap-icon://document-text"
+                        key="csrDecoder" />
+                    <tnt:NavigationListItem
+                        text="DNS Lookup"
+                        icon="sap-icon://globe"
+                        key="dnsLookup" />
+                    <tnt:NavigationListItem
+                        text="WHOIS Lookup"
+                        icon="sap-icon://customer"
+                        key="whoisLookup"
+                        enabled="false" />
+                </tnt:NavigationList>
+            </tnt:SideNavigation>
+        </tnt:sideContent>
+        
+        <!-- Main Content Area -->
+        <tnt:mainContents>
+            <NavContainer id="navContainer">
+                <pages>
+                    <!-- SSL Checker Page will be added here dynamically -->
+                </pages>
+            </NavContainer>
+        </tnt:mainContents>
+        
+    </tnt:ToolPage>
+    
+</mvc:View>

@@ -1,0 +1,72 @@
+# Cloud Foundry ignore file
+# Exclude these files/folders from deployment
+
+# Development dependencies and tools
+node_modules/
+*.log
+npm-debug.log*
+.npm
+.node_repl_history
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation (optional - remove if you want docs in deployment)
+DEPLOYMENT.md
+PERFORMANCE.md
+# Keep README.md for reference
+
+# Test files
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
+# Build artifacts (if any)
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/
+
+# Archive files
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Logs
+logs/
+*.log
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output/

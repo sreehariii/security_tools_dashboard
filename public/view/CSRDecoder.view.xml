@@ -1,0 +1,291 @@
+<mvc:View
+    controllerName="sslchecker.controller.CSRDecoder"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
+    
+    <Page 
+        title="CSR Decoder"
+        showHeader="false"
+        enableScrolling="true"
+        backgroundDesign="Solid">
+        
+        <content>
+            <l:VerticalLayout 
+                width="100%" 
+                class="sapUiContentPadding">
+                
+                <!-- Input Form -->
+                <Panel 
+                    headerText="Certificate Signing Request Decoding"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            
+                            <!-- CSR Input -->
+                            <VBox class="sapUiSmallMarginBottom">
+                                <Label text="Certificate Signing Request (PEM Format)" required="true" labelFor="csrDecodeInput" />
+                                <TextArea
+                                    id="csrDecodeInput"
+                                    value="{/csrToDecode}"
+                                    placeholder="-----BEGIN CERTIFICATE REQUEST-----&#10;MIICvTCCAaUCAQAwezELMAkGA1UEBhMC...&#10;-----END CERTIFICATE REQUEST-----"
+                                    required="true"
+                                    valueState="{/csrDecodeValueState}"
+                                    valueStateText="{/csrDecodeValueStateText}"
+                                    rows="10"
+                                    width="100%" />
+                                <HBox class="sapUiTinyMarginTop">
+                                    <core:Icon 
+                                        src="sap-icon://hint" 
+                                        color="#667eea"
+                                        size="1rem"
+                                        class="sapUiTinyMarginEnd" />
+                                    <Text text="Paste a Certificate Signing Request (CSR) in PEM format to decode its contents and view requested certificate information." class="sapUiSmallText" />
+                                </HBox>
+                            </VBox>
+                            
+                            <!-- Action Buttons -->
+                            <HBox class="sapUiSmallMarginTop">
+                                <Button
+                                    text="Decode CSR"
+                                    type="Emphasized"
+                                    icon="sap-icon://inspection"
+                                    press="onDecodeCSR"
+                                    enabled="{= !${/csrDecodeBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearForm"
+                                    enabled="{= !${/csrDecodeBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                    
+                                <Button
+                                    text="Load Sample"
+                                    icon="sap-icon://add-document"
+                                    press="onLoadSampleCSR"
+                                    enabled="{= !${/csrDecodeBusy}}"
+                                    type="Transparent"
+                                    class="sapUiSmallMarginEnd" />
+                                    
+                                <Button
+                                    text="Copy CSR"
+                                    icon="sap-icon://copy"
+                                    press="onCopyCSR"
+                                    enabled="{= ${/csrToDecode}.length > 0 &amp;&amp; !${/csrDecodeBusy}}"
+                                    type="Transparent" />
+                            </HBox>
+                            
+                        </VBox>
+                    </content>
+                </Panel>
+                
+                <!-- Loading Indicator -->
+                <VBox 
+                    visible="{/csrDecodeBusy}"
+                    alignItems="Center"
+                    justifyContent="Center"
+                    class="sapUiMediumMarginTopBottom">
+                    <BusyIndicator size="3rem" />
+                    <Text 
+                        text="Decoding CSR..."
+                        class="sapUiSmallMarginTop" />
+                </VBox>
+                
+                <!-- Error Message -->
+                <MessageStrip
+                    visible="{/hasCSRDecodeError}"
+                    text="{/csrDecodeError/message}"
+                    type="Error"
+                    showIcon="true"
+                    showCloseButton="true"
+                    class="sapUiResponsiveMargin">
+                    <customData>
+                        <core:CustomData key="details" value="{/csrDecodeError/details}" />
+                    </customData>
+                </MessageStrip>
+                
+                <!-- Results Section -->
+                <VBox visible="{/hasCSRDecodeResults}" class="sapUiResponsiveMargin">
+                    
+                    <!-- Summary Panel -->
+                    <Panel headerText="CSR Summary" class="sapUiTinyMarginBottom">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <!-- Status Header -->
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <ObjectStatus
+                                        text="{/csrDecodeResults/csr/parsingText}"
+                                        state="{/csrDecodeResults/csr/parsingState}"
+                                        icon="{/csrDecodeResults/csr/parsingIcon}"
+                                        inverted="true"
+                                        class="sapUiSmallMarginEnd" />
+                                    <ObjectStatus
+                                        text="{/csrDecodeResults/summaryText}"
+                                        state="{/csrDecodeResults/summaryState}"
+                                        class="sapUiSmallMarginEnd" />
+                                </HBox>
+                                
+                                <!-- Key CSR Information -->
+                                <VBox class="sapUiTinyMarginTop">
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Common Name (CN):" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/csrDecodeResults/csr/commonName}" wrapping="true" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom" visible="{/csrDecodeResults/csr/hasSANs}">
+                                        <Label text="Subject Alt Names:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <VBox>
+                                            <Text text="{/csrDecodeResults/csr/sanText}" wrapping="true" />
+                                            <Button
+                                                text="Copy SANs"
+                                                icon="sap-icon://copy"
+                                                type="Transparent"
+                                                press="onCopySANs"
+                                                class="sapUiTinyMarginTop" />
+                                        </VBox>
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Subject:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <VBox>
+                                            <Text text="{/csrDecodeResults/csr/subject}" wrapping="true" />
+                                            <Button
+                                                text="Copy Subject"
+                                                icon="sap-icon://copy"
+                                                type="Transparent"
+                                                press="onCopySubject"
+                                                class="sapUiTinyMarginTop"
+                                                visible="{= ${/csrDecodeResults/csr/subject} !== 'Unknown' &amp;&amp; ${/csrDecodeResults/csr/subject} !== ''}" />
+                                        </VBox>
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Format:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/csrDecodeResults/csr/format}" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Type:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/csrDecodeResults/csr/type}" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Parsing Method:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <VBox>
+                                            <Text text="{/csrDecodeResults/csr/parsingMethod}" />
+                                            <ObjectStatus 
+                                                text="{= 'Accuracy: ' + ${/csrDecodeResults/csr/accuracy}}"
+                                                state="{/csrDecodeResults/csr/parsingState}"
+                                                class="sapUiTinyMarginTop" />
+                                        </VBox>
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Decoded At:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/csrDecodeResults/decodedAt}" class="sapUiSmallText" />
+                                    </HBox>
+                                </VBox>
+                                
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                    <!-- CSR Details Panel -->
+                    <Panel headerText="CSR Details" class="sapUiTinyMarginBottom" visible="{= !${/csrDecodeResults/csr/hasError}}">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                
+                                <!-- Public Key Information -->
+                                <VBox class="sapUiTinyMarginBottom" visible="{/csrDecodeResults/csr/keyInfo/hasKeyInfo}">
+                                    <Label text="Public Key Information" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Algorithm:" class="sapUiTinyMarginEnd" width="120px" />
+                                        <Text text="{/csrDecodeResults/csr/keyInfo/algorithm}" />
+                                    </HBox>
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Key Size:" class="sapUiTinyMarginEnd" width="120px" />
+                                        <Text text="{/csrDecodeResults/csr/keyInfo/size}" />
+                                    </HBox>
+                                </VBox>
+                                
+                                <!-- Signature Information -->
+                                <VBox class="sapUiTinyMarginBottom" visible="{/csrDecodeResults/csr/signatureInfo/hasSignatureInfo}">
+                                    <Label text="Signature Information" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Algorithm:" class="sapUiTinyMarginEnd" width="120px" />
+                                        <Text text="{/csrDecodeResults/csr/signatureInfo/algorithm}" />
+                                    </HBox>
+                                </VBox>
+                                
+                                <!-- Size Information -->
+                                <VBox class="sapUiTinyMarginBottom" visible="{/csrDecodeResults/csr/hasSizeInfo}">
+                                    <Label text="Size Information" design="Bold" class="sapUiTinyMarginBottom" />
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="CSR Size:" class="sapUiTinyMarginEnd" width="120px" />
+                                        <Text text="{= ${/csrDecodeResults/csr/size} + ' bytes'}" />
+                                    </HBox>
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Base64 Length:" class="sapUiTinyMarginEnd" width="120px" />
+                                        <Text text="{= ${/csrDecodeResults/csr/base64Length} + ' characters'}" />
+                                    </HBox>
+                                </VBox>
+                                
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                    
+                    <!-- Recommendation Panel -->
+                    <Panel headerText="Recommendation" class="sapUiTinyMarginBottom">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <core:Icon 
+                                        src="sap-icon://hint" 
+                                        color="#0070d2"
+                                        size="1.2rem"
+                                        class="sapUiSmallMarginEnd" />
+                                    <Text text="For Complete CSR Analysis" class="sapUiMediumText" />
+                                </HBox>
+                                <Text 
+                                    text="{/csrDecodeResults/recommendation}"
+                                    wrapping="true" 
+                                    class="monospace sapUiSmallText sapUiTinyMarginTop" />
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Error Panel (if CSR has parsing errors) -->
+                    <Panel 
+                        headerText="Parsing Error" 
+                        class="sapUiTinyMarginBottom"
+                        visible="{/csrDecodeResults/csr/hasError}">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <ObjectStatus 
+                                    text="CSR Parsing Failed"
+                                    state="Error"
+                                    icon="sap-icon://error"
+                                    class="sapUiTinyMarginBottom" />
+                                
+                                <Text 
+                                    text="{/csrDecodeResults/csr/error}"
+                                    wrapping="true" />
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                </VBox>
+                
+            </l:VerticalLayout>
+        </content>
+    </Page>
+</mvc:View>

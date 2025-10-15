@@ -1,0 +1,347 @@
+<mvc:View
+    controllerName="sslchecker.controller.SSLChecker"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
+    
+    <Page 
+        title="SSL Certificate Checker"
+        showHeader="false"
+        enableScrolling="true"
+        backgroundDesign="Solid">
+        
+        <content>
+            <l:VerticalLayout 
+                width="100%" 
+                class="sapUiContentPadding">
+                
+                <!-- Input Form -->
+                <Panel 
+                    headerText="Certificate Check"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <HBox alignItems="End">
+                                <VBox class="sapUiSmallMarginEnd" width="40%">
+                                    <Label text="Website URL" required="true" labelFor="urlInput" />
+                                    <Input
+                                        id="urlInput"
+                                        value="{/sslUrl}"
+                                        placeholder="example.com or https://example.com"
+                                        required="true"
+                                        submit="onCheckSSL"
+                                        valueState="{/urlValueState}"
+                                        valueStateText="{/urlValueStateText}"
+                                        width="100%" />
+                                </VBox>
+                                
+                                <VBox class="sapUiSmallMarginEnd" width="15%">
+                                    <Label text="Port" labelFor="portInput" />
+                                    <Input
+                                        id="portInput"
+                                        value="{/sslPort}"
+                                        placeholder="443"
+                                        type="Number"
+                                        submit="onCheckSSL"
+                                        valueState="{/portValueState}"
+                                        valueStateText="{/portValueStateText}"
+                                        width="100%" />
+                                </VBox>
+                                
+                                <Button
+                                    text="Check Certificate"
+                                    type="Emphasized"
+                                    icon="sap-icon://validate"
+                                    press="onCheckSSL"
+                                    enabled="{= !${/busy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearForm"
+                                    enabled="{= !${/busy}}" />
+                            </HBox>
+                            
+                            <HBox class="sapUiTinyMarginTop">
+                                <core:Icon 
+                                    src="sap-icon://hint" 
+                                    color="#667eea"
+                                    size="1rem"
+                                    class="sapUiTinyMarginEnd" />
+                                <Text text="Enter a domain name (e.g., google.com) or full URL. Port defaults to 443 for HTTPS." class="sapUiSmallText" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </Panel>
+                
+                <!-- Loading Indicator -->
+                <VBox 
+                    visible="{/busy}"
+                    alignItems="Center"
+                    justifyContent="Center"
+                    class="sapUiMediumMarginTopBottom">
+                    <BusyIndicator size="3rem" />
+                    <Text 
+                        text="Checking SSL certificate..."
+                        class="sapUiSmallMarginTop" />
+                </VBox>
+                
+                <!-- Error Message -->
+                <MessageStrip
+                    visible="{/hasError}"
+                    text="{/errorMessage}"
+                    type="Error"
+                    showIcon="true"
+                    showCloseButton="true"
+                    class="sapUiResponsiveMargin" />
+                
+                <!-- Results Section -->
+                <VBox visible="{/hasResults}" class="sapUiResponsiveMargin">
+                    
+                    <!-- Status and Hostname -->
+                    <Panel headerText="Status" class="sapUiTinyMarginBottom">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <ObjectStatus
+                                        text="{/results/statusText}"
+                                        state="{/results/statusState}"
+                                        icon="{/results/statusIcon}"
+                                        inverted="true"
+                                        class="sapUiSmallMarginEnd" />
+                                    <Title 
+                                        text="{/results/hostname}"
+                                        level="H4" />
+                                </HBox>
+                                
+                                <MessageStrip
+                                    visible="{/results/showExpiry}"
+                                    text="{/results/expiryMessage}"
+                                    type="{/results/expiryType}"
+                                    showIcon="true"
+                                    class="sapUiTinyMarginBottom" />
+                                
+                                <!-- Quick Info Section -->
+                                <VBox class="sapUiTinyMarginTop">
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="IP Address:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/results/ipAddress}" class="monospace" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Common Name (CN):" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <Text text="{/results/cn}" wrapping="true" />
+                                    </HBox>
+                                    
+                                    <HBox class="sapUiTinyMarginBottom">
+                                        <Label text="Days Until Expiry:" design="Bold" class="sapUiTinyMarginEnd" width="150px" />
+                                        <ObjectStatus 
+                                            text="{/results/daysText}"
+                                            state="{/results/daysState}" />
+                                    </HBox>
+                                    
+                                    <!-- Subject Alternative Names -->
+                                    <VBox visible="{/results/showSAN}" class="sapUiTinyMarginTop">
+                                        <Label text="Subject Alternative Names (SAN):" design="Bold" class="sapUiTinyMarginBottom" />
+                                        <FlexBox
+                                            items="{/results/sanList}"
+                                            wrap="Wrap"
+                                            class="sapUiTinyMarginTop">
+                                            <Text text="{name}" class="sanBadge sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+                                        </FlexBox>
+                                    </VBox>
+                                </VBox>
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Validation -->
+                    <Panel headerText="Certificate Validation" class="sapUiTinyMarginBottom">
+                        <headerToolbar>
+                            <Toolbar>
+                                <Title text="Certificate Validation" />
+                                <ToolbarSpacer />
+                                <core:Icon 
+                                    src="sap-icon://hint" 
+                                    color="#667eea"
+                                    tooltip="Shows whether the certificate is valid and matches the domain" />
+                            </Toolbar>
+                        </headerToolbar>
+                        <content>
+                            <List>
+                                <StandardListItem
+                                    title="Certificate Valid"
+                                    info="{/results/certValid}"
+                                    infoState="{/results/certValidState}" />
+                                <StandardListItem
+                                    title="Domain Match"
+                                    info="{/results/domainMatch}"
+                                    infoState="{/results/domainMatchState}" />
+                                <StandardListItem
+                                    visible="{/results/showMatchedWith}"
+                                    title="Matched With"
+                                    description="{/results/matchedWith}" />
+                                <StandardListItem
+                                    visible="{/results/showAuthError}"
+                                    title="Authorization Error"
+                                    description="{/results/authError}"
+                                    type="Active" />
+                            </List>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Certificate Details -->
+                    <Panel headerText="Certificate Details" class="sapUiTinyMarginBottom">
+                        <headerToolbar>
+                            <Toolbar>
+                                <Title text="Certificate Details" />
+                                <ToolbarSpacer />
+                                <Button
+                                    icon="sap-icon://download"
+                                    type="Transparent"
+                                    tooltip="Export certificate details"
+                                    press="onExportResults" />
+                            </Toolbar>
+                        </headerToolbar>
+                        <content>
+                            <List>
+                                <StandardListItem
+                                    title="Common Name (CN)"
+                                    description="{/results/cn}" />
+                                <StandardListItem
+                                    title="Organization"
+                                    description="{/results/org}" />
+                                <StandardListItem
+                                    title="Valid From"
+                                    description="{/results/validFrom}" />
+                                <StandardListItem
+                                    title="Valid To"
+                                    description="{/results/validTo}" />
+                                <StandardListItem
+                                    title="Days Until Expiration"
+                                    info="{/results/daysText}"
+                                    infoState="{/results/daysState}" />
+                                <StandardListItem
+                                    title="Issuer CN"
+                                    description="{/results/issuerCN}" />
+                                <StandardListItem
+                                    title="Issuer Organization"
+                                    description="{/results/issuerOrg}" />
+                                <StandardListItem
+                                    title="Serial Number"
+                                    description="{/results/serial}" />
+                                <StandardListItem
+                                    title="Protocol"
+                                    description="{/results/protocol}" />
+                                <StandardListItem
+                                    title="Cipher Suite"
+                                    description="{/results/cipher}" />
+                                <CustomListItem>
+                                    <HBox justifyContent="SpaceBetween" alignItems="Center" width="100%">
+                                        <VBox width="90%">
+                                            <Label text="Fingerprint (SHA1)" design="Bold" />
+                                            <Text text="{/results/fingerprint}" wrapping="true" class="monospace" />
+                                        </VBox>
+                                        <Button
+                                            icon="sap-icon://copy"
+                                            type="Transparent"
+                                            tooltip="Copy to clipboard"
+                                            press="onCopyFingerprint"
+                                            customData:fingerprint="{/results/fingerprint}"
+                                            xmlns:customData="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1" />
+                                    </HBox>
+                                </CustomListItem>
+                                <CustomListItem>
+                                    <HBox justifyContent="SpaceBetween" alignItems="Center" width="100%">
+                                        <VBox width="90%">
+                                            <Label text="Fingerprint (SHA256)" design="Bold" />
+                                            <Text text="{/results/fingerprint256}" wrapping="true" class="monospace" />
+                                        </VBox>
+                                        <Button
+                                            icon="sap-icon://copy"
+                                            type="Transparent"
+                                            tooltip="Copy to clipboard"
+                                            press="onCopyFingerprint256"
+                                            customData:fingerprint="{/results/fingerprint256}"
+                                            xmlns:customData="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1" />
+                                    </HBox>
+                                </CustomListItem>
+                            </List>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Subject Alternative Names -->
+                    <Panel 
+                        visible="{/results/showSAN}"
+                        headerText="Subject Alternative Names (SAN)"
+                        class="sapUiTinyMarginBottom">
+                        <content>
+                            <VBox class="sapUiSmallMargin">
+                                <FlexBox
+                                    items="{/results/sanList}"
+                                    wrap="Wrap">
+                                    <Text text="{name}" class="sanBadge sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+                                </FlexBox>
+                            </VBox>
+                        </content>
+                    </Panel>
+                    
+                    <!-- Certificate Chain -->
+                    <Panel 
+                        headerText="Certificate Chain ({/results/chainLength} certificates)"
+                        class="sapUiTinyMarginBottom">
+                        <content>
+                            <List items="{/results/chain}">
+                                <CustomListItem>
+                                    <VBox class="sapUiSmallMargin">
+                                        <ObjectStatus 
+                                            text="{level}"
+                                            state="Information"
+                                            inverted="true"
+                                            class="sapUiTinyMarginBottom" />
+                                        <List>
+                                            <StandardListItem
+                                                title="Subject"
+                                                description="{subject}"
+                                                wrapping="true" />
+                                            <StandardListItem
+                                                title="Issuer"
+                                                description="{issuer}"
+                                                wrapping="true" />
+                                            <StandardListItem
+                                                title="Valid From"
+                                                description="{valid_from}" />
+                                            <StandardListItem
+                                                title="Valid To"
+                                                description="{valid_to}" />
+                                            <StandardListItem
+                                                title="Serial Number"
+                                                description="{serialNumber}"
+                                                wrapping="true" />
+                                            <StandardListItem
+                                                title="Fingerprint"
+                                                description="{fingerprint}"
+                                                wrapping="true" />
+                                        </List>
+                                    </VBox>
+                                </CustomListItem>
+                            </List>
+                        </content>
+                    </Panel>
+                    
+                </VBox>
+                
+            </l:VerticalLayout>
+        </content>
+        
+    </Page>
+    
+</mvc:View>
+

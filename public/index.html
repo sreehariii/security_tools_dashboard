@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSL Tools - Certificate Checker & Port Scanner</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" href="favicon.svg">
+    <link rel="shortcut icon" href="favicon.svg">
+    
+    <!-- Performance optimizations -->
+    <link rel="preconnect" href="https://sdk.openui5.org" crossorigin>
+    <link rel="dns-prefetch" href="https://sdk.openui5.org">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="css/style.css"></noscript>
+    <link rel="preload" href="index.js" as="script">
+    <link rel="preload" href="performance.js" as="script">
+    
+    <!-- Performance monitoring (non-blocking) -->
+    <script src="performance.js" async></script>
+    
+    <!-- Loading indicator -->
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1d2d3e;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: #fff;
+        }
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #354a5f;
+            border-top: 4px solid #0070f2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-family: "72", Arial, sans-serif;
+            font-size: 14px;
+            color: #d5dadd;
+        }
+    </style>
+    
+    <!-- Optimized SAP UI5 loading -->
+    <script id="sap-ui-bootstrap"
+        src="https://sdk.openui5.org/resources/sap-ui-core.js"
+        data-sap-ui-theme="sap_horizon_dark"
+        data-sap-ui-libs="sap.m, sap.ui.layout, sap.tnt"
+        data-sap-ui-resourceroots='{
+            "sslchecker": "./"
+        }'
+        data-sap-ui-oninit="module:sslchecker/index"
+        data-sap-ui-compatVersion="edge"
+        data-sap-ui-async="true"
+        data-sap-ui-preload="async"
+        data-sap-ui-xx-waitForTheme="true"
+        defer>
+    </script>
+    
+    <!-- Remove loading overlay when UI5 is ready -->
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    overlay.style.transition = 'opacity 0.3s ease-out';
+                    setTimeout(function() {
+                        overlay.remove();
+                    }, 300);
+                }
+            }, 500);
+        });
+    </script>
+</head>
+<body class="sapUiBody" id="content">
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading SSL Tools...</div>
+    </div>
+</body>
+</html>
