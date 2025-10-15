@@ -1,18 +1,31 @@
 <mvc:View
     controllerName="sslchecker.controller.DNSLookup"
     xmlns:mvc="sap.ui.core.mvc"
-    displayBlock="true"
     xmlns="sap.m"
-    xmlns:core="sap.ui.core">
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
     
-    <Page title="DNS Lookup" showNavButton="false">
+    <Page 
+        title="DNS Lookup"
+        showHeader="false"
+        enableScrolling="true"
+        backgroundDesign="Solid">
         <content>
-            <VBox class="sapUiMediumMargin">
+            <l:VerticalLayout 
+                width="100%" 
+                class="sapUiContentPadding">
                 
                 <!-- Input Form -->
-                <Panel headerText="Domain Information" class="sapUiResponsiveMargin">
+                <Panel 
+                    headerText="DNS Lookup"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
                     <content>
-                        <VBox class="sapUiMediumMargin">
+                        <VBox class="sapUiSmallMargin">
                             <Label text="Domain Name:" />
                             <Input 
                                 id="domainInput"
@@ -20,7 +33,8 @@
                                 placeholder="Enter domain name (e.g., google.com)"
                                 valueState="{/dnsValueState}"
                                 valueStateText="{/dnsValueStateText}"
-                                width="100%" />
+                                width="100%"
+                                submit="onLookupDNS" />
                                 
                             <!-- Action Buttons -->
                             <HBox class="sapUiSmallMarginTop">
@@ -54,7 +68,7 @@
                 <!-- Loading Indicator -->
                 <Panel visible="{/dnsBusy}" class="sapUiResponsiveMargin">
                     <content>
-                        <VBox alignItems="Center" class="sapUiMediumMargin">
+                        <VBox alignItems="Center" class="sapUiSmallMargin">
                             <BusyIndicator size="2rem" />
                             <Text text="Performing DNS lookup..." class="sapUiSmallMarginTop" />
                         </VBox>
@@ -67,13 +81,13 @@
                     headerText="DNS Lookup Results"
                     class="sapUiResponsiveMargin">
                     <content>
-                        <VBox class="sapUiMediumMargin">
+                        <VBox class="sapUiSmallMargin">
                             
                             <!-- Summary Panel -->
                             <Panel headerText="Summary" class="sapUiTinyMarginBottom">
                                 <content>
                                     <VBox class="sapUiSmallMargin">
-                                        <HBox>
+                                        <HBox alignItems="Center">
                                             <Label text="Domain:" class="sapUiTinyMarginEnd" />
                                             <Text text="{/dnsResults/domain}" class="sapUiTinyMarginEnd" />
                                             <Button 
@@ -82,7 +96,7 @@
                                                 press="onCopyDomain"
                                                 tooltip="Copy domain name" />
                                         </HBox>
-                                        <HBox visible="{/dnsResults/ipAddress}">
+                                        <HBox visible="{= !!${/dnsResults/ipAddress}}" alignItems="Center">
                                             <Label text="Primary IP:" class="sapUiTinyMarginEnd" />
                                             <Text text="{/dnsResults/ipAddress}" class="sapUiTinyMarginEnd" />
                                             <Button 
@@ -134,7 +148,7 @@
                                         <HBox
                                             items="{/dnsResults/records/A/data}">
                                             <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
-                                                <HBox>
+                                                <HBox alignItems="Center">
                                                     <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
                                                     <Button 
                                                         icon="sap-icon://copy"
@@ -163,7 +177,7 @@
                                         <HBox
                                             items="{/dnsResults/records/AAAA/data}">
                                             <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
-                                                <HBox>
+                                                <HBox alignItems="Center">
                                                     <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
                                                     <Button 
                                                         icon="sap-icon://copy"
@@ -192,7 +206,7 @@
                                         <HBox
                                             items="{/dnsResults/records/MX/data}">
                                             <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
-                                                <HBox>
+                                                <HBox alignItems="Center">
                                                     <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
                                                     <Button 
                                                         icon="sap-icon://copy"
@@ -220,7 +234,7 @@
                                     <VBox class="sapUiSmallMargin">
                                         <VBox
                                             items="{/dnsResults/records/TXT/data}">
-                                            <HBox class="sapUiTinyMarginBottom">
+                                            <HBox class="sapUiTinyMarginBottom" alignItems="Center">
                                                 <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
                                                 <Button 
                                                     icon="sap-icon://copy"
@@ -248,7 +262,7 @@
                                         <HBox
                                             items="{/dnsResults/records/CNAME/data}">
                                             <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
-                                                <HBox>
+                                                <HBox alignItems="Center">
                                                     <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
                                                     <Button 
                                                         icon="sap-icon://copy"
@@ -277,7 +291,7 @@
                                         <HBox
                                             items="{/dnsResults/records/NS/data}">
                                             <VBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
-                                                <HBox>
+                                                <HBox alignItems="Center">
                                                     <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
                                                     <Button 
                                                         icon="sap-icon://copy"
@@ -306,7 +320,7 @@
                                         <VBox
                                             items="{/dnsResults/records/SOA/data}">
                                             <VBox class="sapUiTinyMarginBottom">
-                                                <HBox>
+                                                <HBox alignItems="Center">
                                                     <Text text="{value}" class="dnsRecord sapUiTinyMarginEnd" />
                                                     <Button 
                                                         icon="sap-icon://copy"
@@ -341,16 +355,16 @@
                     headerText="Error"
                     class="sapUiResponsiveMargin">
                     <content>
-                        <VBox class="sapUiMediumMargin">
+                        <VBox class="sapUiSmallMargin">
                             <MessageStrip
                                 text="{/dnsError/message}"
                                 type="Error"
-                                class="sapUiMediumMarginBottom" />
+                                class="sapUiSmallMarginBottom" />
                         </VBox>
                     </content>
                 </Panel>
 
-            </VBox>
+            </l:VerticalLayout>
         </content>
     </Page>
 </mvc:View>

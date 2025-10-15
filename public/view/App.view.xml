@@ -58,12 +58,15 @@
                         text="DNS Lookup"
                         icon="sap-icon://globe"
                         key="dnsLookup" />
-                    <tnt:NavigationListItem
-                        text="WHOIS Lookup"
-                        icon="sap-icon://customer"
-                        key="whoisLookup"
-                        enabled="false" />
                 </tnt:NavigationList>
+                <tnt:fixedItem>
+                    <tnt:NavigationList>
+                        <tnt:NavigationListItem
+                            text="Contact Us"
+                            icon="sap-icon://email"
+                            key="contactUs" />
+                    </tnt:NavigationList>
+                </tnt:fixedItem>
             </tnt:SideNavigation>
         </tnt:sideContent>
         

@@ -97,11 +97,6 @@ sap.ui.define([
                     sViewName = "sslchecker.view.DNSLookup";
                     this._selectNavigationItem("dnsLookup");
                     break;
-                case 'whois-lookup':
-                    MessageToast.show("WHOIS Lookup - Coming soon");
-                    window.history.pushState(null, '', '/ssl-checker');
-                    this._navigateToPage('ssl-checker');
-                    return;
                 default:
                     // Redirect to SSL Checker for unknown routes
                     window.history.replaceState(null, '', '/ssl-checker');
@@ -219,9 +214,18 @@ sap.ui.define([
                 case "dnsLookup":
                     sPath = '/dns-lookup';
                     break;
-                case "whoisLookup":
-                    sPath = '/whois-lookup';
-                    break;
+                case "contactUs":
+                    this._showContactDialog();
+                    // Auto-collapse side navigation after selection on mobile devices
+                    if (this._isMobile) {
+                        var oSideNavigation = this.byId("sideNavigation");
+                        if (oSideNavigation && oSideNavigation.getExpanded()) {
+                            setTimeout(function() {
+                                oSideNavigation.setExpanded(false);
+                            }, 300); // Small delay for better UX
+                        }
+                    }
+                    return; // Don't navigate, just show dialog
             }
             
             if (sPath) {
@@ -238,6 +242,121 @@ sap.ui.define([
                     }
                 }
             }
+        },
+
+        _showContactDialog: function () {
+            var that = this;
+            
+            if (!this._oContactDialog) {
+                this._oContactDialog = new sap.m.Dialog({
+                    title: "Contact Us",
+                    contentWidth: "400px",
+                    type: "Message",
+                    content: [
+                        new sap.m.VBox({
+                            class: "sapUiMediumMargin",
+                            items: [
+                                new sap.m.Text({
+                                    text: "Get in touch with us! We'd love to hear from you.",
+                                    class: "sapUiMediumMarginBottom"
+                                }),
+                                new sap.m.Text({
+                                    text: "Contact us for:",
+                                    class: "sapUiTinyMarginBottom"
+                                }),
+                                new sap.m.Text({
+                                    text: "• Bug fixes & issues",
+                                    class: "sapUiTinyText sapUiTinyMarginBottom"
+                                }),
+                                new sap.m.Text({
+                                    text: "• New feature requests", 
+                                    class: "sapUiTinyText sapUiTinyMarginBottom"
+                                }),
+                                new sap.m.Text({
+                                    text: "• Feedback & suggestions",
+                                    class: "sapUiTinyText sapUiMediumMarginBottom"
+                                }),
+                                new sap.m.Label({
+                                    text: "Email Address:",
+                                    class: "sapUiTinyMarginBottom"
+                                }),
+                                new sap.m.HBox({
+                                    alignItems: "Center",
+                                    class: "sapUiTinyMarginBottom",
+                                    items: [
+                                        new sap.m.Text({
+                                            text: "sreehari.janardhanan01@sap.com",
+                                            class: "sapUiMediumMarginEnd"
+                                        }),
+                                        new sap.m.Button({
+                                            icon: "sap-icon://copy",
+                                            type: "Transparent",
+                                            tooltip: "Copy email address",
+                                            press: function() {
+                                                that._copyEmailToClipboard();
+                                            }
+                                        })
+                                    ]
+                                })
+                            ]
+                        })
+                    ],
+                    endButton: new sap.m.Button({
+                        text: "Close",
+                        type: "Emphasized",
+                        press: function () {
+                            that._oContactDialog.close();
+                        }
+                    })
+                });
+                
+                this.getView().addDependent(this._oContactDialog);
+            }
+            
+            this._oContactDialog.open();
+        },
+
+        _copyEmailToClipboard: function () {
+            var emailAddress = "sreehari.janardhanan01@sap.com";
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(emailAddress).then(function () {
+                    sap.m.MessageToast.show("Email address copied to clipboard!");
+                }).catch(function (err) {
+                    console.error('Could not copy email: ', err);
+                    this._fallbackCopyEmail(emailAddress);
+                }.bind(this));
+            } else {
+                this._fallbackCopyEmail(emailAddress);
+            }
+        },
+
+        _fallbackCopyEmail: function (email) {
+            var textArea = document.createElement("textarea");
+            textArea.value = email;
+            
+            // Avoid scrolling to bottom
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    sap.m.MessageToast.show("Email address copied to clipboard!");
+                } else {
+                    sap.m.MessageToast.show("Could not copy email address");
+                }
+            } catch (err) {
+                console.error('Fallback: Unable to copy email', err);
+                sap.m.MessageToast.show("Could not copy email address");
+            }
+
+            document.body.removeChild(textArea);
         }
     });
 });
