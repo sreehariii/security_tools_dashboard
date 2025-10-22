@@ -5,6 +5,7 @@ const https = require('https');
 const url = require('url');
 const path = require('path');
 const dns = require('dns').promises;
+const fs = require('fs');
 const crypto = require('crypto');
 const forge = require('node-forge');
 
@@ -63,17 +64,46 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Cache busting middleware for development/production
+const cacheControl = (req, res, next) => {
+    // Generate version based on current time (in production, use git commit hash or build number)
+    const version = Date.now().toString(); // Use timestamp for cache busting
+    
+    // Add version to response headers for cache busting
+    res.locals.version = version;
+    
+    // Set appropriate cache headers based on file type
+    if (req.path.match(/\.(js|css|xml)$/)) {
+        // For application files, use short cache with validation
+        res.set({
+            'Cache-Control': 'public, max-age=300, must-revalidate', // 5 minutes
+            'ETag': `"app-${version}"`,
+            'X-Version': version
+        });
+    } else if (req.path.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
+        // For static assets, longer cache but still allow updates
+        res.set({
+            'Cache-Control': 'public, max-age=3600', // 1 hour instead of 1 year
+            'ETag': true
+        });
+    } else if (req.path.endsWith('index.html') || req.path === '/') {
+        // For HTML files, always check for updates
+        res.set({
+            'Cache-Control': 'no-cache, must-revalidate',
+            'X-Version': version
+        });
+    }
+    
+    next();
+};
+
+app.use(cacheControl);
+
 // Serve static files with optimized settings
 app.use(express.static('public', {
-    maxAge: '1y', // Cache for 1 year
     etag: true,   // Enable ETags for better caching
     lastModified: true, // Enable Last-Modified headers
-    setHeaders: (res, path) => {
-        // Special handling for index.html
-        if (path.endsWith('index.html')) {
-            res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour
-        }
-    }
+    // Removed long maxAge to allow cache busting to work
 }));
 
 // SPA routing - serve index.html for all non-API, non-static routes
@@ -88,8 +118,21 @@ app.get('*', (req, res, next) => {
         return next();
     }
     
-    // Otherwise serve index.html for client-side routing
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    // For SPA routes, read index.html and inject fresh version for cache busting
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    let indexContent = fs.readFileSync(indexPath, 'utf8');
+    
+    // Inject current timestamp for cache busting
+    const currentVersion = Date.now();
+    indexContent = indexContent.replace(/(\?v=)[^"&\s]*/g, `$1${currentVersion}`);
+    
+    // Set no-cache headers for HTML content
+    res.set({
+        'Cache-Control': 'no-cache, must-revalidate',
+        'X-Version': currentVersion.toString()
+    });
+    
+    res.send(indexContent);
 });
 
 // Helper function to extract hostname from URL
@@ -1648,7 +1691,43 @@ app.post('/api/decode-jwt', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+// Health check endpoint for production monitoring
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        version: '1.0.0',
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    server.close(() => {
+        console.log('Process terminated');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    server.close(() => {
+        console.log('Process terminated');
+        process.exit(0);
+    });
+});
+
+const server = app.listen(PORT, () => {
     console.log(`SSL Checker server running on http://localhost:${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Health check: http://localhost:${PORT}/health`);
+    
+    // PM2 ready signal
+    if (process.send) {
+        process.send('ready');
+    }
 });
 

@@ -14,14 +14,14 @@
     <link rel="preconnect" href="https://sdk.openui5.org" crossorigin>
     <link rel="dns-prefetch" href="https://sdk.openui5.org">
     
-    <!-- Preload critical resources -->
-    <link rel="preload" href="css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="css/style.css"></noscript>
-    <link rel="preload" href="index.js" as="script">
-    <link rel="preload" href="performance.js" as="script">
+    <!-- Preload critical resources with cache busting -->
+    <link rel="preload" href="css/style.css?v=1" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="css/style.css?v=1"></noscript>
+    <link rel="preload" href="index.js?v=1" as="script">
+    <link rel="preload" href="performance.js?v=1" as="script">
     
     <!-- Performance monitoring (non-blocking) -->
-    <script src="performance.js" async></script>
+    <script src="performance.js?v=1" async></script>
     
     <!-- Loading indicator -->
     <style>
