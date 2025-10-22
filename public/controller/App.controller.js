@@ -97,6 +97,21 @@ sap.ui.define([
                     sViewName = "sslchecker.view.DNSLookup";
                     this._selectNavigationItem("dnsLookup");
                     break;
+                case 'jwt-decoder':
+                    sPageId = "jwtDecoderPage";
+                    sViewName = "sslchecker.view.JWTDecoder";
+                    this._selectNavigationItem("jwtDecoder");
+                    break;
+            case 'epoch-converter':
+                sPageId = "epochConverterPage";
+                sViewName = "sslchecker.view.EpochConverter";
+                this._selectNavigationItem("epochConverter");
+                break;
+            case 'base64-converter':
+                sPageId = "base64ConverterPage";
+                sViewName = "sslchecker.view.Base64Converter";
+                this._selectNavigationItem("base64Converter");
+                break;
                 default:
                     // Redirect to SSL Checker for unknown routes
                     window.history.replaceState(null, '', '/ssl-checker');
@@ -213,6 +228,15 @@ sap.ui.define([
                     break;
                 case "dnsLookup":
                     sPath = '/dns-lookup';
+                    break;
+                case "jwtDecoder":
+                    sPath = '/jwt-decoder';
+                    break;
+                case "epochConverter":
+                    sPath = '/epoch-converter';
+                    break;
+                case "base64Converter":
+                    sPath = '/base64-converter';
                     break;
                 case "contactUs":
                     this._showContactDialog();

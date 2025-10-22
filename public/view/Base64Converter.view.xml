@@ -1,0 +1,291 @@
+<mvc:View
+    controllerName="sslchecker.controller.Base64Converter"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
+    
+    <Page 
+        title="Base64 Encoder/Decoder"
+        showHeader="false"
+        enableScrolling="true"
+        backgroundDesign="Solid">
+        
+        <content>
+            <l:VerticalLayout 
+                width="100%" 
+                class="sapUiContentPadding">
+                
+                <!-- Text to Base64 Encoder -->
+                <Panel 
+                    headerText="Text to Base64"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <Label id="plainTextLabel" text="Plain Text:" required="true" design="Bold" />
+                            <TextArea
+                                id="plainTextInput"
+                                value="{/plainText}"
+                                placeholder="Enter text to encode to Base64... (Max 50KB)"
+                                valueState="{/plainTextValueState}"
+                                valueStateText="{/plainTextValueStateText}"
+                                rows="4"
+                                width="100%"
+                                maxLength="50000"
+                                liveChange="onPlainTextChange"
+                                ariaLabelledBy="plainTextLabel"
+                                class="sapUiCodeFont sapUiTinyMarginBottom" />
+                                
+                            <!-- Action Buttons -->
+                            <HBox class="sapUiTinyMarginTop" alignItems="End" wrap="Wrap">
+                                <Button
+                                    text="Encode"
+                                    type="Emphasized"
+                                    icon="sap-icon://locked"
+                                    press="onEncodeToBase64"
+                                    enabled="{= !${/encodeBusy}}"
+                                    tooltip="Convert plain text to Base64 encoding using UTF-8"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+                                
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearEncoder"
+                                    enabled="{= !${/encodeBusy}}"
+                                    tooltip="Clear input text and results"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+
+                                <Button
+                                    text="Load Example"
+                                    icon="sap-icon://example"
+                                    press="onLoadTextExample"
+                                    enabled="{= !${/encodeBusy}}"
+                                    tooltip="Load sample text with UTF-8 characters for testing"
+                                    class="sapUiTinyMarginBottom" />
+                            </HBox>
+                            
+                            <HBox class="sapUiTinyMarginTop">
+                                <core:Icon 
+                                    src="sap-icon://hint" 
+                                    class="sapUiTinyMarginEnd" 
+                                    color="Neutral" />
+                                <Text text="Convert plain text to Base64 encoding. Supports UTF-8 text up to 50KB. Real-time size feedback provided." 
+                                      class="sapUiTinyText" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Loading Indicator for Encoding -->
+                <Panel visible="{/encodeBusy}" class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox alignItems="Center" class="sapUiSmallMargin">
+                            <BusyIndicator size="2rem" />
+                            <Text text="Encoding to Base64..." class="sapUiSmallMarginTop" />
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Encoded Base64 Results -->
+                <Panel 
+                    visible="{/hasEncodeResults}"
+                    headerText="Base64 Encoded Result"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Input Length:" class="base64InfoLabel" />
+                                <Text text="{/encodeResults/inputLength} characters" />
+                            </HBox>
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Output Length:" class="base64InfoLabel" />
+                                <Text text="{/encodeResults/outputLength} characters" />
+                            </HBox>
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Encoding Type:" class="base64InfoLabel" />
+                                <Text text="{/encodeResults/encodingType}" />
+                            </HBox>
+                            
+                            <VBox class="sapUiTinyMarginTop sapUiTinyMarginBottom" />
+                            
+                            <VBox class="sapUiTinyMarginTop">
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="Base64 Result:" class="sapUiFontBold" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyEncodedResult"
+                                        tooltip="Copy Base64 result"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                <TextArea
+                                    value="{/encodeResults/base64}"
+                                    editable="false"
+                                    rows="4"
+                                    width="100%"
+                                    class="sapUiCodeFont base64Result" />
+                            </VBox>
+                        </VBox>
+                    </content>
+                </Panel>
+                
+                <!-- Base64 to Text Decoder -->
+                <Panel 
+                    headerText="Base64 to Text"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <Label id="base64Label" text="Base64 String:" required="true" design="Bold" />
+                            <TextArea
+                                id="base64Input"
+                                value="{/base64Text}"
+                                placeholder="Enter Base64 string to decode... (Max 75KB)"
+                                valueState="{/base64ValueState}"
+                                valueStateText="{/base64ValueStateText}"
+                                rows="4"
+                                width="100%"
+                                maxLength="75000"
+                                liveChange="onBase64TextChange"
+                                ariaLabelledBy="base64Label"
+                                class="sapUiCodeFont sapUiTinyMarginBottom" />
+                                
+                            <!-- Action Buttons -->
+                            <HBox class="sapUiTinyMarginTop" alignItems="End" wrap="Wrap">
+                                <Button
+                                    text="Decode"
+                                    type="Emphasized"
+                                    icon="sap-icon://unlocked"
+                                    press="onDecodeFromBase64"
+                                    enabled="{= !${/decodeBusy}}"
+                                    tooltip="Convert Base64 string back to plain text using UTF-8"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+                                
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearDecoder"
+                                    enabled="{= !${/decodeBusy}}"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+
+                                <Button
+                                    text="Load Example"
+                                    icon="sap-icon://example"
+                                    press="onLoadBase64Example"
+                                    enabled="{= !${/decodeBusy}}"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+
+                                <VBox class="sapUiTinyMarginBottom base64ModeContainer" alignItems="Center">
+                                    <Label text="Base64 Mode:" class="sapUiTinyMarginBottom sapUiTinyText base64ModeLabel" />
+                                    <Select
+                                        id="base64ModeSelect"
+                                        selectedKey="{= ${/urlSafeMode} ? 'urlsafe' : 'standard'}"
+                                        change="onBase64ModeChange"
+                                        width="150px"
+                                        tooltip="Choose Base64 encoding format: Standard (+,/) or URL-Safe (-,_)"
+                                        class="base64ModeSelect">
+                                        <items>
+                                            <core:Item key="standard" text="Standard Base64" icon="sap-icon://standard-arrow" />
+                                            <core:Item key="urlsafe" text="URL-Safe Base64" icon="sap-icon://chain-link" />
+                                        </items>
+                                    </Select>
+                                </VBox>
+                            </HBox>
+                            
+                            <HBox class="sapUiTinyMarginTop">
+                                <core:Icon 
+                                    src="sap-icon://hint" 
+                                    class="sapUiTinyMarginEnd" 
+                                    color="Neutral" />
+                                <Text text="Decode Base64 string back to plain text. Select URL-safe mode for Base64URL format (- and _ instead of + and /). Max 75KB input size." 
+                                      class="sapUiTinyText" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Loading Indicator for Decoding -->
+                <Panel visible="{/decodeBusy}" class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox alignItems="Center" class="sapUiSmallMargin">
+                            <BusyIndicator size="2rem" />
+                            <Text text="Decoding from Base64..." class="sapUiSmallMarginTop" />
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Decoded Text Results -->
+                <Panel 
+                    visible="{/hasDecodeResults}"
+                    headerText="Decoded Text Result"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Input Length:" class="base64InfoLabel" />
+                                <Text text="{/decodeResults/inputLength} characters" />
+                            </HBox>
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Output Length:" class="base64InfoLabel" />
+                                <Text text="{/decodeResults/outputLength} characters" />
+                            </HBox>
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Decoded From:" class="base64InfoLabel" />
+                                <Text text="{/decodeResults/decodingType}" />
+                            </HBox>
+                            
+                            <VBox class="sapUiTinyMarginTop sapUiTinyMarginBottom" />
+                            
+                            <VBox class="sapUiTinyMarginTop">
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="Decoded Text:" class="sapUiFontBold" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyDecodedResult"
+                                        tooltip="Copy decoded text"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                <TextArea
+                                    value="{/decodeResults/plainText}"
+                                    editable="false"
+                                    rows="4"
+                                    width="100%"
+                                    class="base64Result" />
+                            </VBox>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Error Panel -->
+                <Panel 
+                    visible="{/hasError}"
+                    headerText="Error"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <MessageStrip
+                                text="{/error/message}"
+                                type="Error"
+                                class="sapUiSmallMarginBottom" />
+                            <Text text="{/error/details}" 
+                                  class="sapUiTinyText"
+                                  visible="{= !!${/error/details}}" />
+                            <Text text="{/error/suggestion}" 
+                                  class="sapUiTinyText sapUiTinyMarginTop"
+                                  visible="{= !!${/error/suggestion}}" />
+                        </VBox>
+                    </content>
+                </Panel>
+
+            </l:VerticalLayout>
+        </content>
+    </Page>
+</mvc:View>

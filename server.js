@@ -1443,6 +1443,211 @@ app.post('/api/dns-lookup', async (req, res) => {
     }
 });
 
+// JWT Decoder API
+app.post('/api/decode-jwt', async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        // Validate token input
+        if (!token || typeof token !== 'string') {
+            return res.status(400).json({ 
+                error: 'JWT token is required',
+                recommendation: 'Please provide a valid JWT token'
+            });
+        }
+
+        const cleanToken = token.trim();
+        
+        // Basic token validation
+        if (cleanToken.length === 0 || cleanToken.length > 8192) {
+            return res.status(400).json({ 
+                error: 'Invalid token length',
+                recommendation: 'JWT token must be between 1 and 8192 characters'
+            });
+        }
+
+        // Split JWT into parts
+        const parts = cleanToken.split('.');
+        if (parts.length !== 3) {
+            return res.status(400).json({
+                error: 'Invalid JWT format',
+                recommendation: 'JWT must have exactly 3 parts separated by dots (header.payload.signature)'
+            });
+        }
+
+        const [headerB64, payloadB64, signatureB64] = parts;
+
+        // Validate Base64URL format for each part
+        const base64UrlRegex = /^[A-Za-z0-9_-]*$/;
+        if (!base64UrlRegex.test(headerB64) || !base64UrlRegex.test(payloadB64) || !base64UrlRegex.test(signatureB64)) {
+            return res.status(400).json({
+                error: 'Invalid Base64URL encoding',
+                recommendation: 'JWT parts must be Base64URL encoded (A-Z, a-z, 0-9, -, _)'
+            });
+        }
+
+        // Helper function to decode Base64URL
+        const base64UrlDecode = (str) => {
+            // Add padding if needed
+            let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4) {
+                base64 += '=';
+            }
+            
+            try {
+                return Buffer.from(base64, 'base64').toString('utf8');
+            } catch (error) {
+                throw new Error('Invalid Base64URL encoding');
+            }
+        };
+
+        // Decode header
+        let header;
+        try {
+            const headerStr = base64UrlDecode(headerB64);
+            header = JSON.parse(headerStr);
+        } catch (error) {
+            return res.status(400).json({
+                error: 'Invalid JWT header',
+                details: 'Header is not valid JSON',
+                recommendation: 'Verify that the JWT header is properly Base64URL encoded JSON'
+            });
+        }
+
+        // Decode payload
+        let payload;
+        try {
+            const payloadStr = base64UrlDecode(payloadB64);
+            payload = JSON.parse(payloadStr);
+        } catch (error) {
+            return res.status(400).json({
+                error: 'Invalid JWT payload',
+                details: 'Payload is not valid JSON',
+                recommendation: 'Verify that the JWT payload is properly Base64URL encoded JSON'
+            });
+        }
+
+        // Validate header structure
+        if (!header.alg) {
+            return res.status(400).json({
+                error: 'Missing algorithm in header',
+                recommendation: 'JWT header must specify an algorithm (alg) field'
+            });
+        }
+
+        if (!header.typ) {
+            // typ is optional but commonly present
+            header.typ = 'JWT'; // Default if not specified
+        }
+
+        // Security analysis
+        const securityAnalysis = {
+            algorithm: header.alg,
+            isSecure: header.alg !== 'none',
+            vulnerabilities: []
+        };
+
+        if (header.alg === 'none') {
+            securityAnalysis.vulnerabilities.push('No signature algorithm - token is not secure');
+        }
+
+        if (header.alg && header.alg.startsWith('HS') && !signatureB64) {
+            securityAnalysis.vulnerabilities.push('HMAC algorithm specified but no signature present');
+        }
+
+        // Timestamp analysis
+        const now = Math.floor(Date.now() / 1000);
+        const timeAnalysis = {
+            current: now,
+            issued: payload.iat,
+            expires: payload.exp,
+            notBefore: payload.nbf,
+            isExpired: payload.exp ? now > payload.exp : false,
+            isNotYetValid: payload.nbf ? now < payload.nbf : false,
+            isActive: true
+        };
+
+        // Check if token is currently valid based on time claims
+        if (timeAnalysis.isExpired) {
+            timeAnalysis.isActive = false;
+        }
+        if (timeAnalysis.isNotYetValid) {
+            timeAnalysis.isActive = false;
+        }
+
+        // Prepare result
+        const result = {
+            success: true,
+            originalToken: cleanToken,
+            parts: parts.length,
+            header: header,
+            payload: payload,
+            signature: signatureB64,
+            security: securityAnalysis,
+            time: timeAnalysis,
+            analysis: {
+                tokenLength: cleanToken.length,
+                headerLength: headerB64.length,
+                payloadLength: payloadB64.length,
+                signatureLength: signatureB64.length,
+                decodedAt: new Date().toISOString(),
+                format: 'JWT (JSON Web Token)'
+            },
+            warnings: []
+        };
+
+        // Add warnings based on analysis
+        if (securityAnalysis.vulnerabilities.length > 0) {
+            result.warnings.push(...securityAnalysis.vulnerabilities);
+        }
+
+        if (timeAnalysis.isExpired) {
+            result.warnings.push('Token is expired');
+        }
+
+        if (timeAnalysis.isNotYetValid) {
+            result.warnings.push('Token is not yet valid (nbf claim)');
+        }
+
+        if (!payload.exp) {
+            result.warnings.push('No expiration time set - consider adding exp claim');
+        }
+
+        if (!payload.iss) {
+            result.warnings.push('No issuer specified - consider adding iss claim');
+        }
+
+        // Add recommendations
+        result.recommendations = [];
+        
+        if (header.alg === 'none') {
+            result.recommendations.push('Use a proper signing algorithm (HS256, RS256, ES256)');
+        }
+        
+        if (!payload.exp) {
+            result.recommendations.push('Add an expiration time (exp) for better security');
+        }
+        
+        if (!payload.iss) {
+            result.recommendations.push('Add an issuer (iss) claim to identify the token creator');
+        }
+        
+        if (!payload.aud) {
+            result.recommendations.push('Add an audience (aud) claim to specify intended recipients');
+        }
+
+        res.json(result);
+
+    } catch (error) {
+        console.error('JWT decode error:', error);
+        res.status(500).json({
+            error: 'Failed to decode JWT',
+            details: error.message,
+            recommendation: 'Please verify the JWT format and try again'
+        });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`SSL Checker server running on http://localhost:${PORT}`);
 });

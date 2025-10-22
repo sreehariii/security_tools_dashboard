@@ -1,0 +1,403 @@
+<mvc:View
+    controllerName="sslchecker.controller.EpochConverter"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
+    
+    <Page 
+        title="Epoch Time Converter"
+        showHeader="false"
+        enableScrolling="true"
+        backgroundDesign="Solid">
+        
+        <content>
+            <l:VerticalLayout 
+                width="100%" 
+                class="sapUiContentPadding">
+
+                <!-- Current Time Display -->
+                <Panel 
+                    headerText="Current Time"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Unix (seconds):" class="epochTimeLabel" />
+                                <Text text="{/currentTime/unix}" class="epochTimeValue" />
+                                <Button 
+                                    icon="sap-icon://copy"
+                                    type="Transparent"
+                                    press="onCopyCurrentUnix"
+                                    tooltip="Copy current Unix timestamp"
+                                    class="sapUiTinyMarginBegin" />
+                            </HBox>
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="JavaScript (ms):" class="epochTimeLabel" />
+                                <Text text="{/currentTime/javascript}" class="epochTimeValue" />
+                                <Button 
+                                    icon="sap-icon://copy"
+                                    type="Transparent"
+                                    press="onCopyCurrentJS"
+                                    tooltip="Copy current JavaScript timestamp"
+                                    class="sapUiTinyMarginBegin" />
+                            </HBox>
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Local Time:" class="epochTimeLabel" />
+                                <Text text="{/currentTime/local}" />
+                            </HBox>
+                            <HBox alignItems="Center">
+                                <Label text="UTC Time:" class="epochTimeLabel" />
+                                <Text text="{/currentTime/utc}" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </Panel>
+                
+                <!-- Epoch to Human Converter -->
+                <Panel 
+                    headerText="Epoch to Human Time"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <Label text="Epoch Timestamp:" />
+                            <HBox alignItems="End" class="sapUiTinyMarginTop" wrap="Wrap">
+                                <Input 
+                                    id="epochInput"
+                                    value="{/epochInput}"
+                                    placeholder="Enter epoch timestamp (auto-detects format)"
+                                    valueState="{/epochValueState}"
+                                    valueStateText="{/epochValueStateText}"
+                                    liveChange="onEpochInputChange"
+                                    submit="onConvertEpochToHuman"
+                                    width="300px"
+                                    maxLength="20"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom sapUiCodeFont" />
+                                
+                                <Text 
+                                    text="{/detectedFormat}"
+                                    visible="{= !!${/detectedFormat}}"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom epochDetectedFormat"
+                                    width="150px" />
+                                
+                                <Button
+                                    text="Convert"
+                                    type="Emphasized"
+                                    icon="sap-icon://synchronize"
+                                    press="onConvertEpochToHuman"
+                                    enabled="{= !${/epochBusy}}"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+                                
+                                <Button
+                                    text="Use Current"
+                                    icon="sap-icon://date-time"
+                                    press="onUseCurrentEpoch"
+                                    enabled="{= !${/epochBusy}}"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearForm"
+                                    enabled="{= !${/epochBusy}}"
+                                    class="sapUiTinyMarginBottom" />
+                            </HBox>
+                            
+                            <HBox class="sapUiTinyMarginTop">
+                                <core:Icon 
+                                    src="sap-icon://hint" 
+                                    class="sapUiTinyMarginEnd" 
+                                    color="Neutral" />
+                                <Text text="Automatically detects Unix (10 digits), JavaScript (13 digits), Microseconds (16 digits), or Nanoseconds (19 digits)" 
+                                      class="sapUiTinyText" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Loading Indicator -->
+                <Panel visible="{/epochBusy}" class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox alignItems="Center" class="sapUiSmallMargin">
+                            <BusyIndicator size="2rem" />
+                            <Text text="Converting timestamp..." class="sapUiSmallMarginTop" />
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Epoch Conversion Results -->
+                <Panel 
+                    visible="{/hasEpochResults}"
+                    headerText="Conversion Results"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Input:" class="epochTimeLabel" />
+                                <Text text="{/epochResults/input}" class="epochTimeValue" />
+                                <Text text="({/epochResults/format})" class="sapUiTinyText sapUiTinyMarginBegin" />
+                            </HBox>
+                            
+                            <VBox class="sapUiTinyMarginTop sapUiTinyMarginBottom" />
+                            
+                            <VBox class="sapUiTinyMarginTop">
+                                <Label text="Human Readable Times:" class="sapUiTinyMarginBottom sapUiFontBold" />
+                                
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="Local Time:" class="epochTimeLabel" />
+                                    <Text text="{/epochResults/localTime}" class="epochTimeValue" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyLocalTime"
+                                        tooltip="Copy local time"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="UTC Time:" class="epochTimeLabel" />
+                                    <Text text="{/epochResults/utcTime}" class="epochTimeValue" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyUtcTime"
+                                        tooltip="Copy UTC time"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="ISO 8601:" class="epochTimeLabel" />
+                                    <Text text="{/epochResults/isoTime}" class="epochTimeValue sapUiCodeFont" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyIsoTime"
+                                        tooltip="Copy ISO time"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                            </VBox>
+                            
+                            <VBox class="sapUiTinyMarginTop sapUiTinyMarginBottom" />
+                            
+                            <VBox class="sapUiTinyMarginTop">
+                                <Label text="Alternative Formats:" class="sapUiTinyMarginBottom sapUiFontBold" />
+                                
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="Unix (seconds):" class="epochTimeLabel" />
+                                    <Text text="{/epochResults/unixTimestamp}" class="epochTimeValue sapUiCodeFont" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyUnixTimestamp"
+                                        tooltip="Copy Unix timestamp"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="JavaScript (ms):" class="epochTimeLabel" />
+                                    <Text text="{/epochResults/jsTimestamp}" class="epochTimeValue sapUiCodeFont" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyJsTimestamp"
+                                        tooltip="Copy JavaScript timestamp"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="Microseconds:" class="epochTimeLabel" />
+                                    <Text text="{/epochResults/microTimestamp}" class="epochTimeValue sapUiCodeFont" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyMicroTimestamp"
+                                        tooltip="Copy microseconds timestamp"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                
+                                <HBox alignItems="Center">
+                                    <Label text="Nanoseconds:" class="epochTimeLabel" />
+                                    <Text text="{/epochResults/nanoTimestamp}" class="epochTimeValue sapUiCodeFont" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyNanoTimestamp"
+                                        tooltip="Copy nanoseconds timestamp"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Human to Epoch Converter -->
+                <Panel 
+                    headerText="Human Time to Epoch"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <Label text="Date and Time:" />
+                            <HBox alignItems="End" class="sapUiTinyMarginTop" wrap="Wrap">
+                                <HBox class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                    <DatePicker 
+                                        id="humanDatePicker"
+                                        value="{/humanDate}"
+                                        valueState="{/humanValueState}"
+                                        valueStateText="{/humanValueStateText}"
+                                        displayFormat="yyyy-MM-dd"
+                                        valueFormat="yyyy-MM-dd"
+                                        width="150px"
+                                        class="sapUiTinyMarginEnd" />
+                                    <TimePicker 
+                                        id="humanTimePicker"
+                                        value="{/humanTime}"
+                                        valueState="{/humanValueState}"
+                                        valueStateText="{/humanValueStateText}"
+                                        displayFormat="HH:mm:ss"
+                                        valueFormat="HH:mm:ss"
+                                        width="100px" />
+                                </HBox>
+                                
+                                <Select
+                                    id="timezoneSelect"
+                                    selectedKey="{/selectedTimezone}"
+                                    width="120px"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+                                    <core:Item key="local" text="Local Time" />
+                                    <core:Item key="utc" text="UTC" />
+                                </Select>
+                                
+                                <Button
+                                    text="Convert to Epoch"
+                                    type="Emphasized"
+                                    icon="sap-icon://synchronize"
+                                    press="onConvertHumanToEpoch"
+                                    enabled="{= !${/humanBusy}}"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+                                
+                                <Button
+                                    text="Use Now"
+                                    icon="sap-icon://date-time"
+                                    press="onUseCurrentDateTime"
+                                    enabled="{= !${/humanBusy}}"
+                                    class="sapUiTinyMarginEnd sapUiTinyMarginBottom" />
+
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearHumanForm"
+                                    enabled="{= !${/humanBusy}}"
+                                    class="sapUiTinyMarginBottom" />
+                            </HBox>
+                            
+                            <HBox class="sapUiTinyMarginTop">
+                                <core:Icon 
+                                    src="sap-icon://hint" 
+                                    class="sapUiTinyMarginEnd" 
+                                    color="Neutral" />
+                                <Text text="Select a date/time and timezone to convert to various epoch formats. Time format: HH:mm:ss (24-hour). Local time uses your browser's timezone." 
+                                      class="sapUiTinyText" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Human to Epoch Results -->
+                <Panel 
+                    visible="{/hasHumanResults}"
+                    headerText="Epoch Timestamps"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                <Label text="Input:" class="epochTimeLabel" />
+                                <Text text="{/humanResults/inputDateTime}" />
+                                <Text text="({/humanResults/timezone})" class="sapUiTinyText sapUiTinyMarginBegin" />
+                            </HBox>
+                            
+                            <VBox class="sapUiTinyMarginTop sapUiTinyMarginBottom" />
+                            
+                            <VBox class="sapUiTinyMarginTop">
+                                <Label text="Epoch Formats:" class="sapUiTinyMarginBottom sapUiFontBold" />
+                                
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="Unix (seconds):" class="epochTimeLabel" />
+                                    <Text text="{/humanResults/unixTimestamp}" class="epochTimeValue sapUiCodeFont" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyHumanUnix"
+                                        tooltip="Copy Unix timestamp"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="JavaScript (ms):" class="epochTimeLabel" />
+                                    <Text text="{/humanResults/jsTimestamp}" class="epochTimeValue sapUiCodeFont" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyHumanJS"
+                                        tooltip="Copy JavaScript timestamp"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                    <Label text="Microseconds:" class="epochTimeLabel" />
+                                    <Text text="{/humanResults/microTimestamp}" class="epochTimeValue sapUiCodeFont" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyHumanMicro"
+                                        tooltip="Copy microseconds timestamp"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                                
+                                <HBox alignItems="Center">
+                                    <Label text="Nanoseconds:" class="epochTimeLabel" />
+                                    <Text text="{/humanResults/nanoTimestamp}" class="epochTimeValue sapUiCodeFont" />
+                                    <Button 
+                                        icon="sap-icon://copy"
+                                        type="Transparent"
+                                        press="onCopyHumanNano"
+                                        tooltip="Copy nanoseconds timestamp"
+                                        class="sapUiTinyMarginBegin" />
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Error Panel -->
+                <Panel 
+                    visible="{/hasEpochError}"
+                    headerText="Error"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <MessageStrip
+                                text="{/epochError/message}"
+                                type="Error"
+                                class="sapUiSmallMarginBottom" />
+                            <Text text="{/epochError/details}" 
+                                  class="sapUiTinyText"
+                                  visible="{= !!${/epochError/details}}" />
+                        </VBox>
+                    </content>
+                </Panel>
+
+            </l:VerticalLayout>
+        </content>
+    </Page>
+</mvc:View>

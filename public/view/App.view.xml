@@ -58,6 +58,18 @@
                         text="DNS Lookup"
                         icon="sap-icon://globe"
                         key="dnsLookup" />
+                    <tnt:NavigationListItem
+                        text="JWT Decoder"
+                        icon="sap-icon://locked"
+                        key="jwtDecoder" />
+                            <tnt:NavigationListItem
+                                text="Epoch Time Converter"
+                                icon="sap-icon://date-time"
+                                key="epochConverter" />
+                            <tnt:NavigationListItem
+                                text="Base64 Encoder/Decoder"
+                                icon="sap-icon://syntax"
+                                key="base64Converter" />
                 </tnt:NavigationList>
                 <tnt:fixedItem>
                     <tnt:NavigationList>

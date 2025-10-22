@@ -213,3 +213,449 @@ body.sap_horizon_dark .custom-title {
         margin-bottom: 0.5rem !important;
     }
 }
+
+/* JWT Decoder specific styles */
+.jwtRawData {
+    background-color: var(--sapField_ReadOnly_Background, #f7f7f7) !important;
+    border: 1px solid var(--sapField_BorderColor, #d9d9d9) !important;
+    border-radius: 4px !important;
+    padding: 0.75rem !important;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+    word-break: break-all !important;
+    white-space: pre-wrap !important;
+}
+
+.jwtSignature {
+    background-color: var(--sapField_ReadOnly_Background, #f7f7f7) !important;
+    border: 1px solid var(--sapField_BorderColor, #d9d9d9) !important;
+    border-radius: 4px !important;
+    padding: 0.5rem !important;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    font-size: 0.75rem !important;
+    word-break: break-all !important;
+    color: var(--sapNeutralColor, #666666) !important;
+}
+
+/* Dark mode adjustments for JWT */
+[data-sap-theme-name*="dark"] .jwtRawData,
+[data-sap-theme-name*="dark"] .jwtSignature {
+    background-color: var(--sapField_ReadOnly_Background, #2b2b2b) !important;
+    border-color: var(--sapField_BorderColor, #515151) !important;
+    color: var(--sapField_ReadOnly_TextColor, #cccccc) !important;
+}
+
+/* JWT token input area */
+.sapMTextArea .sapMTextAreaInner {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Critical text styling */
+.sapUiCriticalText {
+    color: var(--sapCriticalColor, #e52929) !important;
+    font-weight: 600 !important;
+}
+
+/* Code font for better readability */
+.sapUiCodeFont {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+}
+
+/* JWT results enhancement */
+.sapMPanel .sapMPanelContent .jwtRawData pre {
+    margin: 0 !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    color: inherit !important;
+}
+
+/* Epoch Converter specific styles */
+.epochTimeLabel {
+    min-width: 140px !important;
+    text-align: right !important;
+}
+
+.epochTimeValue {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    font-size: 0.875rem !important;
+    color: var(--sapHighlightColor, #0066cc) !important;
+    font-weight: 600 !important;
+}
+
+/* Epoch converter input styling */
+.epochInput {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+}
+
+/* Current time display styling */
+.sapMPanel .sapMPanelContent .sapMText.sapUiCodeFont {
+    background-color: var(--sapField_ReadOnly_Background, #f7f7f7) !important;
+    border: 1px solid var(--sapField_BorderColor, #d9d9d9) !important;
+    border-radius: 4px !important;
+    padding: 0.25rem 0.5rem !important;
+    display: inline-block !important;
+    min-width: 120px !important;
+}
+
+/* Dark mode adjustments for Epoch converter */
+[data-sap-theme-name*="dark"] .sapMPanel .sapMPanelContent .sapMText.sapUiCodeFont {
+    background-color: var(--sapField_ReadOnly_Background, #2b2b2b) !important;
+    border-color: var(--sapField_BorderColor, #515151) !important;
+    color: var(--sapField_ReadOnly_TextColor, #cccccc) !important;
+}
+
+[data-sap-theme-name*="dark"] .epochTimeValue {
+    color: var(--sapHighlightColor, #5899da) !important;
+}
+
+/* Epoch converter responsive adjustments */
+@media (max-width: 768px) {
+    .epochTimeLabel {
+        min-width: 100px !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .epochTimeValue {
+        font-size: 0.75rem !important;
+        word-break: break-all !important;
+    }
+}
+
+/* Separator styling */
+.sapMPanel .sapMPanelContent .sapMSeparator {
+    margin: 0.5rem 0 !important;
+}
+
+/* Enhanced button spacing for epoch converter */
+.sapMPanel .sapMBtn.sapUiTinyMarginBegin {
+    margin-left: 0.25rem !important;
+}
+
+/* Detected format display */
+.epochDetectedFormat {
+    font-size: 0.875rem !important;
+    color: var(--sapInformationColor, #0066cc) !important;
+    font-weight: 500 !important;
+    font-style: italic !important;
+    background-color: var(--sapInformationBackground, #e7f3ff) !important;
+    border: 1px solid var(--sapInformationBorderColor, #0066cc) !important;
+    border-radius: 4px !important;
+    padding: 0.25rem 0.5rem !important;
+    line-height: 1.2 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+/* Dark mode adjustments for detected format */
+[data-sap-theme-name*="dark"] .epochDetectedFormat {
+    background-color: var(--sapInformationBackground, #0f3a5f) !important;
+    border-color: var(--sapInformationBorderColor, #5899da) !important;
+    color: var(--sapInformationColor, #5899da) !important;
+}
+
+/* Production-ready responsive adjustments */
+@media (max-width: 1024px) {
+    .epochTimeLabel {
+        min-width: 120px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .sapMInput, .sapMTextArea {
+        font-size: 0.875rem !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .epochTimeLabel {
+        min-width: 90px !important;
+        text-align: left !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .epochTimeValue {
+        font-size: 0.75rem !important;
+        word-break: break-all !important;
+        line-height: 1.3 !important;
+    }
+    
+    .epochDetectedFormat {
+        font-size: 0.75rem !important;
+        padding: 0.2rem 0.4rem !important;
+        margin-top: 0.25rem !important;
+        width: 100% !important;
+        text-align: center !important;
+    }
+    
+    /* Stack buttons vertically on small screens */
+    .sapMPanel .sapMHBox[alignItems="End"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    .sapMPanel .sapMHBox[alignItems="End"] .sapMBtn {
+        margin: 0.125rem 0 !important;
+        width: 100% !important;
+    }
+}
+
+/* Accessibility improvements */
+.sapMInput:focus, .sapMTextArea:focus {
+    outline: 2px solid var(--sapContent_FocusColor, #0066cc) !important;
+    outline-offset: 2px !important;
+}
+
+/* Performance optimizations */
+.sapMPanel {
+    contain: layout !important;
+    will-change: contents !important;
+}
+
+.sapMBusyIndicator {
+    contain: layout !important;
+}
+
+/* Copy button improvements */
+.sapMBtn[tooltip*="Copy"] {
+    min-width: 2rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.sapMBtn[tooltip*="Copy"]:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+/* Loading state improvements */
+.sapMBusyIndicator {
+    backdrop-filter: blur(2px) !important;
+}
+
+/* Error message styling */
+.sapMMessageStrip[type="Error"] {
+    border-left: 4px solid var(--sapErrorColor, #e52929) !important;
+}
+
+.sapMMessageStrip[type="Warning"] {
+    border-left: 4px solid var(--sapWarningColor, #ff6600) !important;
+}
+
+.sapMMessageStrip[type="Information"] {
+    border-left: 4px solid var(--sapInformationColor, #0066cc) !important;
+}
+
+/* Base64 Converter specific styles */
+.base64InfoLabel {
+    min-width: 120px !important;
+    text-align: right !important;
+}
+
+.base64Result {
+    background-color: var(--sapField_ReadOnly_Background, #f7f7f7) !important;
+    border: 1px solid var(--sapField_BorderColor, #d9d9d9) !important;
+    border-radius: 4px !important;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.4 !important;
+    word-break: break-all !important;
+    white-space: pre-wrap !important;
+}
+
+/* Dark mode adjustments for Base64 converter */
+[data-sap-theme-name*="dark"] .base64Result {
+    background-color: var(--sapField_ReadOnly_Background, #2b2b2b) !important;
+    border-color: var(--sapField_BorderColor, #515151) !important;
+    color: var(--sapField_ReadOnly_TextColor, #cccccc) !important;
+}
+
+/* Base64 input areas */
+.sapMTextArea .sapMTextAreaInner.sapUiCodeFont {
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Base64 responsive adjustments */
+@media (max-width: 768px) {
+    .base64InfoLabel {
+        min-width: 100px !important;
+        font-size: 0.875rem !important;
+        text-align: left !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .base64Result {
+        font-size: 0.75rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    /* Stack Base64 buttons vertically on small screens */
+    .sapMPanel .sapMHBox[alignItems="End"] .sapMBtn {
+        margin: 0.125rem 0 !important;
+        min-width: auto !important;
+        text-align: center !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    .sapMPanel .sapMHBox[alignItems="End"] .sapMBtn .sapMBtnContent {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+    
+    /* Base64 Mode container responsive */
+    .base64ModeContainer {
+        min-width: 180px !important;
+        margin: 0.25rem 0 !important;
+        align-self: center !important;
+    }
+    
+    .base64ModeLabel {
+        font-size: 0.8rem !important;
+    }
+    
+    /* URL-Safe switch responsive */
+    .base64ModeSwitch {
+        min-width: 180px !important;
+        width: 180px !important;
+        margin: 0.25rem 0 !important;
+        align-self: center !important;
+    }
+    
+    .base64ModeSwitch .sapMSwitchInner {
+        min-width: 180px !important;
+        width: 180px !important;
+    }
+    
+    .base64ModeSwitch .sapMSwitchHandle {
+        min-width: 180px !important;
+        width: 180px !important;
+    }
+    
+    .base64ModeSwitch .sapMSwitchText {
+        font-size: 0.8rem !important;
+        min-width: 80px !important;
+        width: 80px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .base64ModeContainer {
+        min-width: 160px !important;
+    }
+    
+    .base64ModeLabel {
+        font-size: 0.75rem !important;
+    }
+    
+    .base64ModeSwitch {
+        min-width: 160px !important;
+        width: 160px !important;
+    }
+    
+    .base64ModeSwitch .sapMSwitchInner {
+        min-width: 160px !important;
+        width: 160px !important;
+    }
+    
+    .base64ModeSwitch .sapMSwitchHandle {
+        min-width: 160px !important;
+        width: 160px !important;
+    }
+    
+    .base64ModeSwitch .sapMSwitchText {
+        font-size: 0.75rem !important;
+        min-width: 70px !important;
+        width: 70px !important;
+        padding: 0.2rem 0.35rem !important;
+    }
+}
+
+/* Remove Base64 specific button styling to match other pages exactly */
+
+/* Base64 switch styling */
+.sapMSwitch {
+    align-self: center !important;
+    min-width: 140px !important;
+}
+
+.sapMSwitch .sapMSwitchText {
+    font-size: 0.875rem !important;
+    white-space: nowrap !important;
+}
+
+.sapMSwitch .sapMSwitchHandle {
+    min-width: 140px !important;
+}
+
+/* Base64 example buttons use default styling */
+
+/* Base64 buttons use default UI5 styling - no custom overrides to allow icons */
+
+/* Base64 Mode container styling */
+.base64ModeContainer {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    min-width: 200px !important;
+}
+
+.base64ModeLabel {
+    text-align: center !important;
+    font-weight: 500 !important;
+    color: var(--sapTextColor, #333333) !important;
+    margin-bottom: 0.25rem !important;
+}
+
+/* URL-Safe switch specific styling - wider for better text display */
+.base64ModeSwitch {
+    min-width: 200px !important;
+    width: 200px !important;
+    font-size: 0.875rem !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.base64ModeSwitch .sapMSwitchInner {
+    min-width: 200px !important;
+    width: 200px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.base64ModeSwitch .sapMSwitchHandle {
+    min-height: 2.5rem !important;
+    min-width: 200px !important;
+    width: 200px !important;
+}
+
+.base64ModeSwitch .sapMSwitchText {
+    font-size: 0.875rem !important;
+    min-width: 90px !important;
+    width: 90px !important;
+    text-align: center !important;
+    padding: 0.25rem 0.5rem !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    font-weight: 500 !important;
+}
+
+.base64ModeSwitch .sapMSwitchSlider {
+    width: 200px !important;
+    min-width: 200px !important;
+}

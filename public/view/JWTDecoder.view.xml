@@ -1,0 +1,283 @@
+<mvc:View
+    controllerName="sslchecker.controller.JWTDecoder"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:core="sap.ui.core"
+    displayBlock="true"
+    height="100%">
+    
+    <Page 
+        title="JWT Decoder"
+        showHeader="false"
+        enableScrolling="true"
+        backgroundDesign="Solid">
+        
+        <content>
+            <l:VerticalLayout 
+                width="100%" 
+                class="sapUiContentPadding">
+                
+                <!-- Input Form -->
+                <Panel 
+                    headerText="JWT Decoder"
+                    expandable="false"
+                    expanded="true"
+                    class="sapUiResponsiveMargin"
+                    width="100%">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <Label text="JWT Token:" />
+                            <TextArea 
+                                id="jwtTokenInput"
+                                value="{/jwtToken}"
+                                placeholder="Paste your JWT token here (e.g., eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c)"
+                                valueState="{/jwtValueState}"
+                                valueStateText="{/jwtValueStateText}"
+                                width="100%"
+                                rows="4"
+                                maxLength="10000"
+                                liveChange="onTokenChange"
+                                class="sapUiCodeFont" />
+                                
+                            <!-- Action Buttons -->
+                            <HBox class="sapUiSmallMarginTop" alignItems="End">
+                                <Button
+                                    text="Decode JWT"
+                                    type="Emphasized"
+                                    icon="sap-icon://locked"
+                                    press="onDecodeJWT"
+                                    enabled="{= !${/jwtBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+                                
+                                <Button
+                                    text="Clear"
+                                    icon="sap-icon://clear-filter"
+                                    press="onClearForm"
+                                    enabled="{= !${/jwtBusy}}"
+                                    class="sapUiSmallMarginEnd" />
+
+                                <Button
+                                    text="Load Example"
+                                    icon="sap-icon://example"
+                                    press="onLoadExample"
+                                    enabled="{= !${/jwtBusy}}" />
+                            </HBox>
+                            
+                            <HBox class="sapUiTinyMarginTop">
+                                <core:Icon 
+                                    src="sap-icon://hint" 
+                                    class="sapUiTinyMarginEnd" 
+                                    color="Neutral" />
+                                <Text text="JWT tokens consist of three parts: Header, Payload, and Signature (separated by dots). This tool only decodes - it does not verify signatures or validate tokens." 
+                                      class="sapUiTinyText" />
+                            </HBox>
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Loading Indicator -->
+                <Panel visible="{/jwtBusy}" class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox alignItems="Center" class="sapUiSmallMargin">
+                            <BusyIndicator size="2rem" />
+                            <Text text="Decoding JWT token..." class="sapUiSmallMarginTop" />
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- JWT Decode Results -->
+                <Panel 
+                    visible="{/hasJwtResults}"
+                    headerText="JWT Decode Results"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            
+                            <!-- Token Info -->
+                            <Panel headerText="Token Information" class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox alignItems="Center">
+                                            <Label text="Format:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/jwtResults/format}" />
+                                        </HBox>
+                                        <HBox alignItems="Center">
+                                            <Label text="Parts:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/jwtResults/parts} (Header.Payload.Signature)" />
+                                        </HBox>
+                                        <HBox alignItems="Center">
+                                            <Label text="Total Length:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/jwtResults/length} characters" />
+                                        </HBox>
+                                        <HBox alignItems="Center" visible="{/jwtResults/isExpired}">
+                                            <core:Icon src="sap-icon://warning" color="Critical" class="sapUiTinyMarginEnd" />
+                                            <Text text="Token is EXPIRED" class="sapUiCriticalText" />
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- Header Section -->
+                            <Panel headerText="Header" class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox alignItems="Center">
+                                            <Label text="Algorithm:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/jwtResults/header/alg}" />
+                                        </HBox>
+                                        <HBox alignItems="Center">
+                                            <Label text="Type:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/jwtResults/header/typ}" />
+                                        </HBox>
+                                        <HBox alignItems="Center" visible="{= !!${/jwtResults/header/kid}}">
+                                            <Label text="Key ID:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/jwtResults/header/kid}" />
+                                        </HBox>
+                                        <VBox class="sapUiTinyMarginTop">
+                                            <Label text="Raw Header (Base64 Decoded):" class="sapUiTinyMarginBottom" />
+                                            <FormattedText
+                                                htmlText="{path: '/jwtResults/header/raw', formatter: '.formatJSON'}"
+                                                class="sapUiCodeFont sapUiTinyText jwtRawData" />
+                                        </VBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- Payload Section -->
+                            <Panel headerText="Payload (Claims)" class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <!-- Standard Claims -->
+                                        <VBox visible="{/jwtResults/payload/hasStandardClaims}" class="sapUiTinyMarginBottom">
+                                            <Label text="Standard Claims:" class="sapUiTinyMarginBottom" />
+                                            <HBox alignItems="Center" visible="{= !!${/jwtResults/payload/iss}}">
+                                                <Label text="Issuer (iss):" class="sapUiTinyMarginEnd" />
+                                                <Text text="{/jwtResults/payload/iss}" />
+                                            </HBox>
+                                            <HBox alignItems="Center" visible="{= !!${/jwtResults/payload/sub}}">
+                                                <Label text="Subject (sub):" class="sapUiTinyMarginEnd" />
+                                                <Text text="{/jwtResults/payload/sub}" />
+                                            </HBox>
+                                            <HBox alignItems="Center" visible="{= !!${/jwtResults/payload/aud}}">
+                                                <Label text="Audience (aud):" class="sapUiTinyMarginEnd" />
+                                                <Text text="{/jwtResults/payload/aud}" />
+                                            </HBox>
+                                            <HBox alignItems="Center" visible="{= !!${/jwtResults/payload/exp}}">
+                                                <Label text="Expires (exp):" class="sapUiTinyMarginEnd" />
+                                                <Text text="{/jwtResults/payload/expFormatted}" />
+                                            </HBox>
+                                            <HBox alignItems="Center" visible="{= !!${/jwtResults/payload/iat}}">
+                                                <Label text="Issued At (iat):" class="sapUiTinyMarginEnd" />
+                                                <Text text="{/jwtResults/payload/iatFormatted}" />
+                                            </HBox>
+                                            <HBox alignItems="Center" visible="{= !!${/jwtResults/payload/nbf}}">
+                                                <Label text="Not Before (nbf):" class="sapUiTinyMarginEnd" />
+                                                <Text text="{/jwtResults/payload/nbfFormatted}" />
+                                            </HBox>
+                                            <HBox alignItems="Center" visible="{= !!${/jwtResults/payload/jti}}">
+                                                <Label text="JWT ID (jti):" class="sapUiTinyMarginEnd" />
+                                                <Text text="{/jwtResults/payload/jti}" />
+                                            </HBox>
+                                        </VBox>
+
+                                        <!-- Custom Claims -->
+                                        <VBox visible="{/jwtResults/payload/hasCustomClaims}" class="sapUiTinyMarginBottom">
+                                            <Label text="Custom Claims:" class="sapUiTinyMarginBottom" />
+                                            <VBox items="{/jwtResults/payload/customClaims}">
+                                                <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                                    <Text text="{key}: " class="sapUiFontBold sapUiTinyMarginEnd" />
+                                                    <Text text="{value}" />
+                                                </HBox>
+                                            </VBox>
+                                        </VBox>
+
+                                        <VBox class="sapUiTinyMarginTop">
+                                            <Label text="Raw Payload (Base64 Decoded):" class="sapUiTinyMarginBottom" />
+                                            <FormattedText
+                                                htmlText="{path: '/jwtResults/payload/raw', formatter: '.formatJSON'}"
+                                                class="sapUiCodeFont sapUiTinyText jwtRawData" />
+                                        </VBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- Signature Section -->
+                            <Panel headerText="Signature" class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox alignItems="Center">
+                                            <Label text="Algorithm:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/jwtResults/signature/algorithm}" />
+                                        </HBox>
+                                        <HBox alignItems="Center">
+                                            <Label text="Length:" class="sapUiTinyMarginEnd" />
+                                            <Text text="{/jwtResults/signature/length} bytes" />
+                                        </HBox>
+                                        <VBox class="sapUiTinyMarginTop">
+                                            <Label text="Signature (Base64):" class="sapUiTinyMarginBottom" />
+                                            <Text text="{/jwtResults/signature/base64}" 
+                                                  class="sapUiCodeFont sapUiTinyText jwtSignature" />
+                                        </VBox>
+                                        <MessageStrip
+                                            text="Note: Signature verification requires the secret key and is not performed in this decoder for security reasons."
+                                            type="Information"
+                                            class="sapUiTinyMarginTop" />
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                            <!-- Security Analysis -->
+                            <Panel headerText="Security Analysis" class="sapUiTinyMarginBottom">
+                                <content>
+                                    <VBox class="sapUiSmallMargin">
+                                        <HBox alignItems="Center">
+                                            <core:Icon 
+                                                src="{= ${/jwtResults/security/algorithmSecure} ? 'sap-icon://accept' : 'sap-icon://warning'}"
+                                                color="{= ${/jwtResults/security/algorithmSecure} ? 'Positive' : 'Critical'}"
+                                                class="sapUiTinyMarginEnd" />
+                                            <Text text="Algorithm Security: {/jwtResults/security/algorithmAssessment}" />
+                                        </HBox>
+                                        <HBox alignItems="Center">
+                                            <core:Icon 
+                                                src="{= ${/jwtResults/security/notExpired} ? 'sap-icon://accept' : 'sap-icon://decline'}"
+                                                color="{= ${/jwtResults/security/notExpired} ? 'Positive' : 'Critical'}"
+                                                class="sapUiTinyMarginEnd" />
+                                            <Text text="Token Status: {/jwtResults/security/expirationStatus}" />
+                                        </HBox>
+                                        <VBox items="{/jwtResults/security/recommendations}" class="sapUiTinyMarginTop">
+                                            <HBox alignItems="Center" class="sapUiTinyMarginBottom">
+                                                <core:Icon src="sap-icon://hint" color="Neutral" class="sapUiTinyMarginEnd" />
+                                                <Text text="{}" class="sapUiTinyText" />
+                                            </HBox>
+                                        </VBox>
+                                    </VBox>
+                                </content>
+                            </Panel>
+
+                        </VBox>
+                    </content>
+                </Panel>
+
+                <!-- Error Panel -->
+                <Panel 
+                    visible="{/hasJwtError}"
+                    headerText="Error"
+                    class="sapUiResponsiveMargin">
+                    <content>
+                        <VBox class="sapUiSmallMargin">
+                            <MessageStrip
+                                text="{/jwtError/message}"
+                                type="Error"
+                                class="sapUiSmallMarginBottom" />
+                            <Text text="{/jwtError/details}" 
+                                  class="sapUiTinyText"
+                                  visible="{= !!${/jwtError/details}}" />
+                        </VBox>
+                    </content>
+                </Panel>
+
+            </l:VerticalLayout>
+        </content>
+    </Page>
+</mvc:View>
