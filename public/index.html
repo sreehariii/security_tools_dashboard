@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Security Tools</title>
     
+    
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="icon" type="image/png" href="favicon.svg">
@@ -14,14 +15,11 @@
     <link rel="preconnect" href="https://sdk.openui5.org" crossorigin>
     <link rel="dns-prefetch" href="https://sdk.openui5.org">
     
-    <!-- Preload critical resources with cache busting -->
-    <link rel="preload" href="css/style.css?v=1" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="css/style.css?v=1"></noscript>
-    <link rel="preload" href="index.js?v=1" as="script">
-    <link rel="preload" href="performance.js?v=1" as="script">
+    <!-- Critical CSS -->
+    <link rel="stylesheet" href="css/style.css">
     
     <!-- Performance monitoring (non-blocking) -->
-    <script src="performance.js?v=1" async></script>
+    <script src="performance.js" async></script>
     
     <!-- Loading indicator -->
     <style>
@@ -73,22 +71,6 @@
         data-sap-ui-preload="async"
         data-sap-ui-xx-waitForTheme="true"
         defer>
-    </script>
-    
-    <!-- Remove loading overlay when UI5 is ready -->
-    <script>
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                const overlay = document.getElementById('loading-overlay');
-                if (overlay) {
-                    overlay.style.opacity = '0';
-                    overlay.style.transition = 'opacity 0.3s ease-out';
-                    setTimeout(function() {
-                        overlay.remove();
-                    }, 300);
-                }
-            }, 500);
-        });
     </script>
 </head>
 <body class="sapUiBody" id="content">

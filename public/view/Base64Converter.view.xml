@@ -192,8 +192,8 @@
                                         tooltip="Choose Base64 encoding format: Standard (+,/) or URL-Safe (-,_)"
                                         class="base64ModeSelect">
                                         <items>
-                                            <core:Item key="standard" text="Standard Base64" icon="sap-icon://standard-arrow" />
-                                            <core:Item key="urlsafe" text="URL-Safe Base64" icon="sap-icon://chain-link" />
+                                            <core:Item key="standard" text="Standard Base64" />
+                                            <core:Item key="urlsafe" text="URL-Safe Base64" />
                                         </items>
                                     </Select>
                                 </VBox>

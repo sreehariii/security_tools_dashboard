@@ -83,7 +83,49 @@ sap.ui.define([
             dnsError: {},
             dnsResults: {},
             dnsValueState: "None",
-            dnsValueStateText: ""
+            dnsValueStateText: "",
+            
+            // JWT Decoder properties
+            jwtToken: "",
+            jwtBusy: false,
+            hasJwtResults: false,
+            hasJwtError: false,
+            jwtError: {},
+            jwtResults: {},
+            jwtValueState: "None",
+            jwtValueStateText: "",
+            
+            // Epoch Time Converter properties
+            epochTime: "",
+            epochType: "auto",
+            epochBusy: false,
+            hasEpochResults: false,
+            hasEpochError: false,
+            epochError: {},
+            epochResults: {},
+            epochValueState: "None",
+            epochValueStateText: "",
+            humanTime: "",
+            humanDate: "",
+            humanTimezone: "",
+            useCurrentTime: false,
+            
+            // Base64 Converter properties
+            plainText: "",
+            base64Text: "",
+            urlSafeMode: false,
+            encodeBusy: false,
+            decodeBusy: false,
+            hasEncodeResults: false,
+            hasDecodeResults: false,
+            hasBase64Error: false,
+            base64Error: {},
+            encodeResults: {},
+            decodeResults: {},
+            plainTextValueState: "None",
+            plainTextValueStateText: "",
+            base64ValueState: "None",
+            base64ValueStateText: ""
         });
 
         // Enable two-way data binding for better performance

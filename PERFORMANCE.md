@@ -33,19 +33,20 @@ The application has been optimized to reduce loading times from several seconds 
 
 #### 2. **Backend Optimizations**
 
-##### **Compression & Caching**
+##### **Compression & Performance**
 - ✅ **Gzip Compression**: 60-80% size reduction for text assets
-- ✅ **Smart Caching Headers**:
-  - Static assets: 1 year cache
-  - HTML files: 1 hour cache
-  - API responses: No cache
-- ✅ **ETags**: Efficient cache validation
-- ✅ **Last-Modified Headers**: Browser cache optimization
-
-##### **Server Performance**
-- ✅ **Optimized Static Serving**: Express static middleware with performance settings
-- ✅ **Request Body Limits**: Security and performance (10KB limit)
+- ✅ **Rate Limiting**: 100 requests per minute per IP (DOS protection)
 - ✅ **Connection Timeout Management**: Prevents hanging connections
+- ✅ **Request Body Limits**: Security and performance (100KB limit for certificate chains)
+- ✅ **Optimized Static Serving**: Express static middleware
+
+##### **Security Headers (Production-Ready)**
+- ✅ **HSTS**: HTTP Strict Transport Security with preload
+- ✅ **CSP**: Content Security Policy for XSS protection
+- ✅ **X-Frame-Options**: Clickjacking protection (DENY)
+- ✅ **X-Content-Type-Options**: MIME sniffing protection
+- ✅ **Referrer-Policy**: Privacy protection
+- ✅ **Permissions-Policy**: Restricts browser features
 
 #### 3. **Cloud Foundry Optimizations**
 

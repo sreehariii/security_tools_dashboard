@@ -4,19 +4,31 @@ A professional, enterprise-grade security toolkit built with SAP UI5 framework. 
 
 ## Features
 
-- ✅ **Certificate Validation** - Verify if SSL certificates are valid and trusted
-- 🔗 **Certificate Chain Analysis** - View the complete certificate chain from server to root CA
-- 🌐 **Domain Matching** - Verify that the certificate matches the domain (including wildcards and SANs)
-- 📅 **Expiration Tracking** - See how many days until certificate expiration with visual alerts
-- 🔐 **Detailed Information** - View certificate details including issuer, fingerprints, cipher info, and more
-- 🔍 **Port Scanner** - Check if specific ports are open on target hosts
-- 🔑 **Certificate Key Matcher** - Verify if a private key matches an SSL certificate
-- 📜 **Certificate Decoder** - Decode and analyze SSL certificates for detailed information
-- 🛡️ **Security Hardened** - SSRF protection, input validation, and security headers
-- 🚀 **Performance Optimized** - Fast loading with gzip compression, caching, and resource preloading
-- 🌙 **Dark Theme by Default** - Professional dark theme with light mode toggle
-- 📱 **Fully Responsive** - Works on desktop, tablet, and mobile devices
-- 🎨 **SAP Fiori Design** - Enterprise-grade UI following SAP design guidelines
+### Core Tools
+- ✅ **SSL Certificate Checker** - Verify SSL certificates with chain analysis
+- 🔍 **Port Scanner** - Check if ports are open on target hosts
+- 🔑 **Certificate Key Matcher** - Verify private key matches certificate
+- 📜 **Certificate Decoder** - Decode and analyze SSL certificates
+- 📝 **CSR Decoder** - Decode Certificate Signing Requests
+- 🌐 **DNS Lookup** - Comprehensive DNS record analysis
+- 🔐 **JWT Decoder** - Decode and validate JSON Web Tokens
+- ⏱️ **Epoch Time Converter** - Convert epoch timestamps (auto-detect format)
+- 🔤 **Base64 Encoder/Decoder** - Encode/decode with URL-safe mode
+
+### Security & Performance
+- 🛡️ **Production-Hardened Security**:
+  - Rate limiting (100 req/min per IP)
+  - HSTS, CSP, anti-clickjacking headers
+  - SSRF protection, input validation
+  - Private IP blocking, size limits
+- 🚀 **Performance Optimized**:
+  - Gzip compression (60-80% reduction)
+  - Resource preloading & async loading
+  - Connection pooling & timeouts
+- 🌙 **Modern UI/UX**:
+  - SAP Fiori design principles
+  - Dark theme by default with toggle
+  - Fully responsive (mobile/tablet/desktop)
 - ☁️ **Cloud Ready** - Optimized for SAP Cloud Foundry deployment
 
 ## Architecture

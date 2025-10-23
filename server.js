@@ -12,6 +12,57 @@ const forge = require('node-forge');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// Rate limiting - in-memory store for simplicity
+const rateLimitStore = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 100; // 100 requests per minute per IP
+
+// Rate limiter middleware
+const rateLimiter = (req, res, next) => {
+    // Skip rate limiting for health checks
+    if (req.path === '/health') {
+        return next();
+    }
+    
+    const clientIP = req.ip || req.connection.remoteAddress;
+    const now = Date.now();
+    
+    if (!rateLimitStore.has(clientIP)) {
+        rateLimitStore.set(clientIP, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+        return next();
+    }
+    
+    const clientData = rateLimitStore.get(clientIP);
+    
+    if (now > clientData.resetTime) {
+        // Reset the counter
+        rateLimitStore.set(clientIP, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+        return next();
+    }
+    
+    if (clientData.count >= MAX_REQUESTS_PER_WINDOW) {
+        return res.status(429).json({ 
+            error: 'Too many requests',
+            message: 'Rate limit exceeded. Please try again later.',
+            retryAfter: Math.ceil((clientData.resetTime - now) / 1000)
+        });
+    }
+    
+    clientData.count++;
+    rateLimitStore.set(clientIP, clientData);
+    next();
+};
+
+// Clean up old rate limit entries periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [ip, data] of rateLimitStore.entries()) {
+        if (now > data.resetTime) {
+            rateLimitStore.delete(ip);
+        }
+    }
+}, 60 * 1000); // Clean up every minute
+
 // Enable gzip compression
 app.use(compression({
     level: 6, // Compression level (0-9)
@@ -26,26 +77,48 @@ app.use(compression({
     }
 }));
 
+// Apply rate limiting
+app.use(rateLimiter);
+
 // Limit request body size for security (increased for certificate chains)
 app.use(express.json({ limit: '100kb' }));
 
-// Security headers and caching
+// Enhanced security headers for production
 app.use((req, res, next) => {
-    // Security headers
+    // Prevent MIME type sniffing
     res.setHeader('X-Content-Type-Options', 'nosniff');
+    
+    // Prevent clickjacking
     res.setHeader('X-Frame-Options', 'DENY');
+    
+    // Enable XSS protection
     res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    // Referrer policy
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     
-    // Caching headers for static assets
-    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
-        // Cache static assets for 1 year
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    } else if (req.path.match(/\.(html|htm)$/)) {
-        // Cache HTML files for 1 hour
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-    } else if (req.path.startsWith('/api/')) {
-        // Don't cache API responses
+    // HTTP Strict Transport Security (HSTS) - 1 year
+    if (process.env.NODE_ENV === 'production') {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
+    
+    // Content Security Policy (CSP) - Allow UI5 CDN and inline styles
+    const cspDirectives = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.openui5.org",
+        "style-src 'self' 'unsafe-inline' https://sdk.openui5.org",
+        "font-src 'self' https://sdk.openui5.org",
+        "img-src 'self' data: https://sdk.openui5.org",
+        "connect-src 'self' https://sdk.openui5.org",
+        "frame-ancestors 'none'"
+    ].join('; ');
+    res.setHeader('Content-Security-Policy', cspDirectives);
+    
+    // Permissions Policy (formerly Feature Policy)
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    
+    // Disable caching for App.view.xml (side panel) to ensure navigation updates always load
+    if (req.path.endsWith('/view/App.view.xml')) {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
@@ -59,52 +132,16 @@ app.get('/health', (req, res) => {
     res.status(200).json({ 
         status: 'UP',
         timestamp: new Date().toISOString(),
-        service: 'SSL Certificate Checker',
-        version: '1.0.0'
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        version: '2.2.0',
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
-// Cache busting middleware for development/production
-const cacheControl = (req, res, next) => {
-    // Generate version based on current time (in production, use git commit hash or build number)
-    const version = Date.now().toString(); // Use timestamp for cache busting
-    
-    // Add version to response headers for cache busting
-    res.locals.version = version;
-    
-    // Set appropriate cache headers based on file type
-    if (req.path.match(/\.(js|css|xml)$/)) {
-        // For application files, use short cache with validation
-        res.set({
-            'Cache-Control': 'public, max-age=300, must-revalidate', // 5 minutes
-            'ETag': `"app-${version}"`,
-            'X-Version': version
-        });
-    } else if (req.path.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
-        // For static assets, longer cache but still allow updates
-        res.set({
-            'Cache-Control': 'public, max-age=3600', // 1 hour instead of 1 year
-            'ETag': true
-        });
-    } else if (req.path.endsWith('index.html') || req.path === '/') {
-        // For HTML files, always check for updates
-        res.set({
-            'Cache-Control': 'no-cache, must-revalidate',
-            'X-Version': version
-        });
-    }
-    
-    next();
-};
 
-app.use(cacheControl);
-
-// Serve static files with optimized settings
-app.use(express.static('public', {
-    etag: true,   // Enable ETags for better caching
-    lastModified: true, // Enable Last-Modified headers
-    // Removed long maxAge to allow cache busting to work
-}));
+// Serve static files
+app.use(express.static('public'));
 
 // SPA routing - serve index.html for all non-API, non-static routes
 app.get('*', (req, res, next) => {
@@ -118,21 +155,8 @@ app.get('*', (req, res, next) => {
         return next();
     }
     
-    // For SPA routes, read index.html and inject fresh version for cache busting
-    const indexPath = path.join(__dirname, 'public', 'index.html');
-    let indexContent = fs.readFileSync(indexPath, 'utf8');
-    
-    // Inject current timestamp for cache busting
-    const currentVersion = Date.now();
-    indexContent = indexContent.replace(/(\?v=)[^"&\s]*/g, `$1${currentVersion}`);
-    
-    // Set no-cache headers for HTML content
-    res.set({
-        'Cache-Control': 'no-cache, must-revalidate',
-        'X-Version': currentVersion.toString()
-    });
-    
-    res.send(indexContent);
+    // For SPA routes, serve index.html
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Helper function to extract hostname from URL
@@ -1691,17 +1715,6 @@ app.post('/api/decode-jwt', async (req, res) => {
     }
 });
 
-// Health check endpoint for production monitoring
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        version: '1.0.0',
-        environment: process.env.NODE_ENV || 'development'
-    });
-});
 
 // Graceful shutdown handling
 process.on('SIGTERM', () => {
@@ -1721,9 +1734,15 @@ process.on('SIGINT', () => {
 });
 
 const server = app.listen(PORT, () => {
-    console.log(`SSL Checker server running on http://localhost:${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`Health check: http://localhost:${PORT}/health`);
+    console.log('='.repeat(60));
+    console.log('🚀 SSL Tools Server Started');
+    console.log('='.repeat(60));
+    console.log(`📍 URL: http://localhost:${PORT}`);
+    console.log(`🏥 Health: http://localhost:${PORT}/health`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔒 Security: Rate limiting, HSTS, CSP enabled`);
+    console.log(`⚡ Performance: Gzip compression, optimized`);
+    console.log('='.repeat(60));
     
     // PM2 ready signal
     if (process.send) {
