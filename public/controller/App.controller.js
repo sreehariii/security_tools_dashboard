@@ -44,6 +44,14 @@ sap.ui.define([
             
             // Load initial route
             this._handleRouteChange();
+            
+            // Check if we should show cache clear message (only once per session)
+            if (!sessionStorage.getItem('cacheMsgShown')) {
+                setTimeout(() => {
+                    this._showCacheClearHelper();
+                }, 1000); // Show after 1 second
+                sessionStorage.setItem('cacheMsgShown', 'true');
+            }
         },
 
         _initializeRouting: function () {
@@ -381,6 +389,99 @@ sap.ui.define([
             }
 
             document.body.removeChild(textArea);
+        },
+
+        _detectBrowser: function() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const vendor = navigator.vendor.toLowerCase();
+            
+            if (userAgent.indexOf('edg') > -1) {
+                return {
+                    name: 'Microsoft Edge',
+                    url: 'edge://settings/clearBrowserData'
+                };
+            } else if (userAgent.indexOf('chrome') > -1 && vendor.indexOf('google') > -1) {
+                return {
+                    name: 'Google Chrome',
+                    url: 'chrome://settings/clearBrowserData'
+                };
+            } else if (userAgent.indexOf('firefox') > -1) {
+                return {
+                    name: 'Mozilla Firefox',
+                    url: 'about:preferences#privacy'
+                };
+            } else if (userAgent.indexOf('safari') > -1 && vendor.indexOf('apple') > -1) {
+                return {
+                    name: 'Safari',
+                    url: null
+                };
+            } else if (userAgent.indexOf('opera') > -1 || userAgent.indexOf('opr') > -1) {
+                return {
+                    name: 'Opera',
+                    url: 'opera://settings/clearBrowserData'
+                };
+            } else {
+                return {
+                    name: 'Your Browser',
+                    url: null
+                };
+            }
+        },
+
+        _showCacheClearHelper: function() {
+            const browser = this._detectBrowser();
+            
+            let message = "💡 Tip: If you don't see new features or experience issues, try clearing your browser cache.";
+            
+            const contentItems = [
+                new sap.m.Text({
+                    text: message
+                }).addStyleClass("sapUiSmallMarginBottom")
+            ];
+            
+            if (browser.url) {
+                contentItems.push(
+                    new sap.m.Text({
+                        text: "🔗 " + browser.url,
+                        wrapping: true
+                    }).addStyleClass("sapUiTinyMarginTop sapUiCodeFont")
+                );
+            } else {
+                contentItems.push(
+                    new sap.m.Text({
+                        text: "Please clear your cache manually through your browser settings."
+                    }).addStyleClass("sapUiTinyMarginTop")
+                );
+            }
+            
+            const dialog = new sap.m.Dialog({
+                title: "Info",
+                type: "Message",
+                content: [
+                    new sap.m.VBox({
+                        items: contentItems
+                    }).addStyleClass("sapUiContentPadding")
+                ],
+                beginButton: new sap.m.Button({
+                    text: "Got it",
+                    type: "Emphasized",
+                    press: function() {
+                        dialog.close();
+                    }
+                }),
+                endButton: new sap.m.Button({
+                    text: "Don't show again",
+                    press: function() {
+                        sessionStorage.setItem('cacheMsgShown', 'permanent');
+                        dialog.close();
+                    }
+                }),
+                afterClose: function() {
+                    dialog.destroy();
+                }
+            });
+            
+            dialog.open();
         }
     });
 });
