@@ -46,12 +46,12 @@ sap.ui.define([
             this._handleRouteChange();
             
             // Check if we should show cache clear message (only once per session)
-            if (!sessionStorage.getItem('cacheMsgShown')) {
-                setTimeout(() => {
-                    this._showCacheClearHelper();
-                }, 1000); // Show after 1 second
-                sessionStorage.setItem('cacheMsgShown', 'true');
-            }
+            // if (!sessionStorage.getItem('cacheMsgShown')) {
+               // setTimeout(() => {
+                 //   this._showCacheClearHelper();
+                // }, 1000); // Show after 1 second
+                // sessionStorage.setItem('cacheMsgShown', 'true');
+            //}
         },
 
         _initializeRouting: function () {
